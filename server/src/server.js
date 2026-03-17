@@ -3,6 +3,7 @@ const app = require("./app");
 const sequelize = require("./config/database");
 
 require("./modules/users/user.model");
+require("./modules/tiers/tier.model");
 
 const PORT = process.env.PORT || 5000;
 
