@@ -21,9 +21,8 @@ router.put("/:id",
 
 router.delete("/:id", 
   authenticate, 
+  authorizeRole("creator"), 
   tierController.deleteTier
 );
-
-// router.delete("")
 
 module.exports = router;
