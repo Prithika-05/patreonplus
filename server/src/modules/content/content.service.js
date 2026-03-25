@@ -1,24 +1,6 @@
-const Content = require("./content.model");
+const Subscription = require("../subscriptions/subscription.model");
 
-const createContent = async (data, creatorId) => {
-
-  const content = await Content.create({
-    ...data,
-    creatorId
-  });
-
-  return content;
-};
-
-const getAllContent = async () => {
-  return await Content.findAll();
-};
-
-const getContentById = async (id) => {
-  return await Content.findByPk(id);
-};
-
-const deleteContent = async (id) => {
+const getContentById = async (id, userId) => {
 
   const content = await Content.findByPk(id);
 
@@ -26,14 +8,17 @@ const deleteContent = async (id) => {
     throw new Error("Content not found");
   }
 
-  await content.destroy();
+  const subscription = await Subscription.findOne({
+    where: {
+      subscriberId: userId,
+      tierId: content.tierId,
+      status: "active"
+    }
+  });
 
-  return true;
-};
+  if (!subscription) {
+    throw new Error("Access denied. Subscribe to this tier.");
+  }
 
-module.exports = {
-  createContent,
-  getAllContent,
-  getContentById,
-  deleteContent
+  return content;
 };

@@ -4,7 +4,10 @@ const createContent = async (req, res) => {
 
   try {
 
-    const content = await contentService.createContent(req.body, req.user.id);
+    const content = await contentService.getContentById(
+       req.params.id,
+       req.user.id
+    );
 
     res.status(201).json({
       message: "Content created successfully",
