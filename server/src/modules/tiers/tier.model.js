@@ -8,48 +8,48 @@ const Tier = sequelize.define(
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      primaryKey: true,
     },
 
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
 
     description: {
       type: DataTypes.TEXT,
-      allowNull: true
     },
 
     price: {
       type: DataTypes.FLOAT,
       allowNull: false,
-      validate: {
-        min: 0
-      }
+      validate: { min: 0 },
     },
 
     unlockDuration: {
       type: DataTypes.INTEGER,
-      allowNull: false
-    }
+      allowNull: false,
+    },
+
+    level: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: { min: 1 },
+    },
   },
   {
     tableName: "tiers",
-    timestamps: true
-  }
+    timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["creatorId", "level"],
+      },
+    ],
+  },
 );
 
-/* RELATIONSHIP */
-
-Tier.belongsTo(User, {
-  foreignKey: "creatorId",
-  as: "creator"
-});
-
-User.hasMany(Tier, {
-  foreignKey: "creatorId",
-  as: "tiers"
-});
+Tier.belongsTo(User, { foreignKey: "creatorId", as: "creator" });
+User.hasMany(Tier, { foreignKey: "creatorId", as: "tiers" });
 
 module.exports = Tier;
