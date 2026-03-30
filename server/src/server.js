@@ -4,6 +4,7 @@ const sequelize = require("./config/database");
 
 require("./modules/users/user.model");
 require("./modules/tiers/tier.model");
+require("./modules/contents/content.model")
 
 const PORT = process.env.PORT || 5000;
 
