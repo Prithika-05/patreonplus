@@ -39,4 +39,11 @@ router.delete(
   tierController.deleteTier,
 );
 
+router.patch(
+  "/reorder",
+  authenticate,
+  authorizeRole("creator"),
+  tierController.reorderTiers,
+);
+
 module.exports = router;

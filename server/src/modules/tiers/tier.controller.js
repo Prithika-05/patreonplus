@@ -58,10 +58,24 @@ const deleteTier = async (req, res) => {
   }
 };
 
+const reorderTiers = async (req, res) => {
+  try {
+    const tiers = await tierService.reorderTiers(req.body, req.user.id);
+
+    res.json({
+      message: "Tiers reordered successfully",
+      tiers,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createTier,
   getAllTiers,
   getTierById,
   updateTier,
   deleteTier,
+  reorderTiers,
 };

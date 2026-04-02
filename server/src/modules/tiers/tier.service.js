@@ -60,11 +60,29 @@ const deleteTier = async (id, creatorId) => {
 
   return true;
 };
+const reorderTiers = async (tiers, creatorId) => {
+  for (const t of tiers) {
+    const tier = await Tier.findByPk(t.id);
 
+    if (!tier) throw new Error("Tier not found");
+
+    if (tier.creatorId !== creatorId) {
+      throw new Error("Unauthorized");
+    }
+
+    await tier.update({ level: t.level });
+  }
+
+  return await Tier.findAll({
+    where: { creatorId },
+    order: [["level", "ASC"]],
+  });
+};
 module.exports = {
   createTier,
   getAllTiers,
   getTierById,
   updateTier,
   deleteTier,
+  reorderTiers,
 };
