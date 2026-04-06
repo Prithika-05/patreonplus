@@ -6,8 +6,8 @@ export const authService = {
     return response.data;
   },
 
-  signup: async (name, email, password, role) => {
-    const response = await api.post('/auth/signup', { name, email, password, role });
+  signup: async (name, username, email, password, role) => {
+    const response = await api.post('/auth/signup', { name, username, email, password, role });
     return response.data;
   },
 

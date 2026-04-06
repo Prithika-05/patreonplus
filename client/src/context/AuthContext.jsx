@@ -39,9 +39,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (name, email, password, role) => {
+  const signup = async (name, username, email, password, role) => {
     try {
-      await authService.signup(name, email, password, role);
+      await authService.signup(name, username, email, password, role);
       toast.success('Account created successfully. Please login.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Signup failed');

@@ -8,9 +8,10 @@ import DashboardHome from '@/pages/creator/DashboardHome';
 import Tiers from '@/pages/creator/Tiers';
 import Contents from '@/pages/creator/Contents';
 import MySubscriptions from '@/pages/subscriber/MySubscriptions';
-import CreatorProfile from '@/pages/subscriber/CreatorProfile';
 import Feed from '@/pages/subscriber/Feed';
 import Unauthorized from '@/pages/auth/Unauthorized';
+import Explorer from '@/pages/subscriber/Explorer';
+import PublicProfile from '@/pages/subscriber/PublicProfile';
 
 function App() {
   return (
@@ -44,7 +45,8 @@ function App() {
         >
           <Route path="feed" element={<Feed />} />
           <Route path="subscriptions" element={<MySubscriptions />} />
-          <Route path="explore" element={<CreatorProfile />} />
+          <Route path="explore" element={<Explorer />} />
+          <Route path="profile/:username" element={<PublicProfile />} />
           <Route index element={<Navigate to="/subscriber/feed" replace />} />
         </Route>
         

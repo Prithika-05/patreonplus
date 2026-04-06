@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const Signup = () => {
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('subscriber');
@@ -20,7 +21,7 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signup(name, email, password, role);
+      await signup(name, username, email, password, role);
       navigate('/login');
     } catch (error) {
     } finally {
@@ -40,6 +41,10 @@ const Signup = () => {
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username (Unique)</Label>
+              <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

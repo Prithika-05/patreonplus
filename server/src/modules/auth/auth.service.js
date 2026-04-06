@@ -14,6 +14,7 @@ const signup = async (data) => {
 
   const user = await User.create({
     name: data.name,
+    username: data.username,
     email: data.email,
     password: hashedPassword,
     role: data.role
