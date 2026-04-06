@@ -10,7 +10,7 @@ import { Calendar, CreditCard } from 'lucide-react';
 const MySubscriptions = () => {
   const queryClient = useQueryClient();
 
-  const {  subscriptions, isLoading } = useQuery({
+  const { data: subscriptions, isLoading } = useQuery({
     queryKey: ['my-subscriptions'],
     queryFn: subscriptionService.getMySubscriptions,
   });

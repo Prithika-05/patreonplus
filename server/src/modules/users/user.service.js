@@ -1,13 +1,27 @@
 const User = require("./user.model");
 const Tier = require("../tiers/tier.model");
+const { Op } = require("sequelize");
 
 const searchUsers = async (query) => {
-  return await User.findAll({
-    where: {
-      username: { [require('sequelize').Op.like]: `%${query}%` }
-    },
-    attributes: ['id', 'name', 'username', 'role', 'bio', 'profileImage']
-  });
+  const isEmptyQuery = !query || query.trim() === '';
+
+  const whereClause = {
+    role: 'creator' 
+  };
+
+  const options = {
+    where: whereClause,
+    attributes: ['id', 'name', 'username', 'role', 'bio', 'profileImage', 'createdAt'],
+    order: [['createdAt', 'DESC']],
+  };
+
+  if (!isEmptyQuery) {
+    whereClause.username = { [Op.like]: `%${query.trim()}%` };
+  } else {
+    options.limit = 5;
+  }
+
+  return await User.findAll(options);
 };
 
 const getPublicProfile = async (username) => {
