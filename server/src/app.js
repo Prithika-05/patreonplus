@@ -9,14 +9,20 @@ const userRoutes = require("./modules/users/user.routes")
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
-app.use("/auth", authRoutes);
-app.use("/tiers", tierRoutes);
-app.use("/contents", contentRoutes);
-app.use("/subscriptions",subscriptionRoutes)
-app.use("/users",userRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/tiers", tierRoutes);
+app.use("/api/contents", contentRoutes);
+app.use("/api/subscriptions",subscriptionRoutes)
+app.use("/api/users",userRoutes)
 
 app.get("/", (req, res) => {
   res.json({ message: "Patreon+ API Running" });
