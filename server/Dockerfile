@@ -4,7 +4,9 @@ WORKDIR /src
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm install
+
+RUN npm ci --omit=dev
 
 COPY . .
 
