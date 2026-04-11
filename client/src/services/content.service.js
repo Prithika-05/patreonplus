@@ -20,4 +20,9 @@ export const contentService = {
     const response = await api.delete(`/contents/delete/${id}`);
     return response.data;
   },
+
+  getSubscriberFeed: async () => {
+    const response = await api.get('/contents/feed');
+    return response.data;
+  },
 };
