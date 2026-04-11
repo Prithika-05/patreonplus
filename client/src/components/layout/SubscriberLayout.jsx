@@ -11,8 +11,8 @@ const SubscriberLayout = () => {
 
   const navItems = [
     { path: '/subscriber/feed', label: 'Home Feed', icon: Home },
-    { path: '/subscriber/subscriptions', label: 'My Subscriptions', icon: CreditCard },
     { path: '/subscriber/explore', label: 'Explore Creators', icon: Search },
+    { path: '/subscriber/subscriptions', label: 'My Subscriptions', icon: CreditCard },
   ];
 
   const handleLogout = () => {
