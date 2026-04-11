@@ -73,10 +73,20 @@ const deleteContent = async (req, res) => {
   }
 };
 
+const getSubscriberFeed = async (req, res) => {
+  try {
+    const contents = await contentService.getSubscriberFeed(req.user.id);
+    res.json(contents);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createContent,
   getAllContents,
   getContentById,
   deleteContent,
   updateContent,
+  getSubscriberFeed,
 };

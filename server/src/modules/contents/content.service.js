@@ -1,6 +1,7 @@
 const Content = require("./content.model");
+const { Op } = require("sequelize");
+const Subscription = require("../subscriptions/subscription.model");
 const Tier = require("../tiers/tier.model");
-const User = require("../users/user.model");
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
@@ -89,10 +90,62 @@ const deleteContent = async (id, userId) => {
   return true;
 };
 
+const getSubscriberFeed = async (userId) => {
+  const now = new Date();
+
+  const subscriptions = await Subscription.findAll({
+    where: {
+      subscriberId: userId,
+      status: "active",
+      endDate: { [Op.gte]: now },
+    },
+    include: [{ model: Tier, as: "tier" }],
+  });
+
+  if (subscriptions.length === 0) {
+    return [];
+  }
+  
+  const contentPromises = subscriptions.map(async (sub) => {
+    const creatorId = sub.creatorId;
+    const subscribedLevel = sub.tier.level;
+
+    const accessibleTiers = await Tier.findAll({
+      where: {
+        creatorId,
+        level: { [Op.lte]: subscribedLevel },
+      },
+      attributes: ["id"],
+    });
+
+    const tierIds = accessibleTiers.map((t) => t.id);
+
+    return await Content.findAll({
+      where: {
+        creatorId,
+        tierId: { [Op.in]: tierIds },
+      },
+      include: [
+        { model: Tier, as: "tier" },
+        { model: require("../users/user.model"), as: "creator" },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+  });
+
+  const results = await Promise.all(contentPromises);
+  let feed = results.flat();
+
+  feed.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  return feed;
+};
+
 module.exports = {
   createContent,
   getAllContents,
   getContentById,
   deleteContent,
   updateContent,
+  getSubscriberFeed,
 };

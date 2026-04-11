@@ -13,6 +13,13 @@ router.get(
 );
 
 router.get(
+  "/feed",
+  authenticate,
+  authorizeRole("subscriber"),
+  contentController.getSubscriberFeed,
+);
+
+router.get(
   "/:id",
   authenticate,
   authorizeRole("creator"),
