@@ -47,49 +47,55 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Light Mode: Warm, Clean, Energetic */
+    --background: 36 40% 98%; /* Very warm off-white */
+    --foreground: 222 47% 11%; /* Deep slate text */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* Pure white cards for contrast */
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: Vibrant Coral/Orange - High Energy */
+    --primary: 14 90% 55%; 
+    --primary-foreground: 0 0% 100%; /* White text on coral */
 
-    --secondary: 262 40% 96%;
+    /* Secondary: Soft Peach/Sand - Warmth without distraction */
+    --secondary: 36 80% 95%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
+    --muted: 36 40% 90%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent: Matching Primary for consistency */
+    --accent: 14 90% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-
-    --ring: 262 83% 58%;
+    
+    --ring: 14 90% 55%; /* Coral focus rings */
     
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar: Slightly warmer gray to match the theme */
+    --sidebar-background: 36 40% 98%;
     --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary: 14 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 262 40% 96%;
+    --sidebar-accent: 36 80% 95%;
     --sidebar-accent-foreground: 240 6% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-ring: 14 90% 55%;
   }
 
   .dark {
-    --background: 222 47% 11%;
+    /* Dark Mode: Deep Ocean Slate with Bright Tangerine */
+    --background: 222 47% 11%; /* Deep cool slate */
     --foreground: 210 40% 98%;
 
     --card: 222 47% 11%;
@@ -98,16 +104,18 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 262 83% 65%;
-    --primary-foreground: 222 47% 11%;
+    /* Primary: Brighter Tangerine for Dark Mode visibility */
+    --primary: 14 90% 60%;
+    --primary-foreground: 222 47% 11%; /* Dark text on bright button */
 
+    /* Secondary: Warmer dark slate */
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
-    --accent: 262 83% 65%;
+    --accent: 14 90% 60%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 63% 31%;
@@ -116,16 +124,17 @@
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     
-    --ring: 262 83% 65%;
+    --ring: 14 90% 60%;
 
+    /* Sidebar: Deep Navy/Black blend */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 262 83% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 14 90% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 240 5% 96%;
     --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 262 83% 65%;
+    --sidebar-ring: 14 90% 60%;
   }
 }
 
