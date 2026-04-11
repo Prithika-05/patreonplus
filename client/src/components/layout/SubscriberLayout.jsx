@@ -30,10 +30,10 @@ const SubscriberLayout = () => {
       >
         <div className="flex h-20 items-center gap-3 px-8 border-b border-border/60">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-600 text-primary-foreground shadow-lg shadow-primary/20">
-            <span className="font-bold text-lg">CH</span>
+            <span className="font-bold text-lg">P+</span>
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-tight text-foreground">CreatorHub</h1>
+            <h1 className="text-lg font-bold tracking-tight text-foreground">Patreon+</h1>
             <p className="text-xs font-medium text-muted-foreground">Fan Portal</p>
           </div>
         </div>
