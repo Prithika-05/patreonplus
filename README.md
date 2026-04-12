@@ -1,16 +1,16 @@
 # Introduction
-    Patreon+ is a modern, full-stack creator subscription platform designed to streamline the relationship between content creators and their audiences. The system enables creators to publish exclusive content, define customizable membership tiers with time-bound access, and track subscriber engagement. Subscribers can discover creators, subscribe to specific tiers, and consume time-unlocked content through an intuitive, role-based interface.
+Patreon+ is a modern, full-stack creator subscription platform designed to streamline the relationship between content creators and their audiences. The system enables creators to publish exclusive content, define customizable membership tiers with time-bound access, and track subscriber engagement. Subscribers can discover creators, subscribe to specific tiers, and consume time-unlocked content through an intuitive, role-based interface.
 
 # Patreon Docs - Backend
-    A robust, Node.js/Express backend for a creator subscription platform. The system enables creators to publish exclusive content, manage subscription tiers with custom pricing and access durations, and track subscribers. Subscribers can discover creators, subscribe to specific tiers, and access time-unlocked content. Built with a clean MVC-inspired architecture, JWT-based authentication, and PostgreSQL via Sequelize ORM.
+A robust, Node.js/Express backend for a creator subscription platform. The system enables creators to publish exclusive content, manage subscription tiers with custom pricing and access durations, and track subscribers. Subscribers can discover creators, subscribe to specific tiers, and access time-unlocked content. Built with a clean MVC-inspired architecture, JWT-based authentication, and PostgreSQL via Sequelize ORM.
 
 ## Tech Stack
-    - Runtime: Node.js
-    - Framework: Express.js
-    - Database: PostgreSQL
-    - ORM: Sequelize
-    - Authentication: JSON Web Tokens (JWT) + bcrypt
-    - Utilities: cors, dotenv, nodemon
+- Runtime: Node.js
+- Framework: Express.js
+- Database: PostgreSQL
+- ORM: Sequelize
+- Authentication: JSON Web Tokens (JWT) + bcrypt
+- Utilities: cors, dotenv, nodemon
 
 ## Prerequisites
     - Installation & Setup
@@ -24,7 +24,8 @@
         - npm run dev
 
 ## Step 1
-    - Authentication & Authorization
+- Authentication & Authorization
+
         - JWT-based Auth: Users receive a signed token on login containing id and role
         - Middleware Pipeline:
             authenticate -> Verifies token, attaches req.user, handles expired/invalid tokens.
@@ -32,12 +33,14 @@
         - Password Security: All passwords are hashed with bcrypt before storage and verified securely during login.
 
 ## Step 2
-    - Database & ORM
+- Database & ORM
+
         - Sequelize manages PostgreSQL connections and model relationships.
         - Auto-Sync: sequelize.sync() on startup ensures schema matches models.
 
 ## Step 3
-    - Routing
+- Routing
+
         - server.js
             Application entry point. Loads .env variables, imports all Sequelize models, authenticates the DB connection, runs sequelize.sync(), and starts the HTTP server.
         - app.js
@@ -97,18 +100,18 @@
             - Cancel: Sets status='cancelled' after verifying ownership.
 
 # Patreon Docs - Frontend
-    A modern, full-stack platform connecting creators with subscribers, featuring a vibrant design system, real-time analytics, and secure membership management.
+A modern, full-stack platform connecting creators with subscribers, featuring a vibrant design system, real-time analytics, and secure membership management.
 
 ## Tech Stack
-    - Frontend: React 18 + Vite
-    - Language: JavaScript (ES6+)
-    - Styling: Tailwind CSS v4 (Custom Theme)
-    - UI Components: shadcn/ui (Radix Primitives)
-    - State Management: TanStack Query (React Query)
-    - Routing: React Router DOM v6
-    - Animations: Framer Motion
-    - Icons: Lucide React
-    - Notifications: Sonner
+- Frontend: React 18 + Vite
+- Language: JavaScript (ES6+)
+- Styling: Tailwind CSS v4 (Custom Theme)
+- UI Components: shadcn/ui (Radix Primitives)
+- State Management: TanStack Query (React Query)
+- Routing: React Router DOM v6
+- Animations: Framer Motion
+- Icons: Lucide React
+- Notifications: Sonner
 
 ## Prerequisites
     - Installation & Setup
@@ -119,7 +122,7 @@
         - npm run dev
 
 ## Step 1
-    -Routing
+-Routing
         - src/App.js
             - The root component that sets up routing.
             - Defines routes (/login, /creator/*, /subscriber/*).
@@ -127,12 +130,13 @@
             - Redirects users to the correct landing page based on their role.
         
         - src/main.jsx
-            - Renders <App />.
+            - Renders <App/>.
             - Wraps the app in QueryClientProvider (for TanStack Query) and AuthContextProvider.
             - Imports index.css to apply global styles.
 
 ## Step 2
-    - UI Components
+- UI Components
+
         - src/components/ui/
             - These are atomic, accessible components built on top of Radix UI and styled with Tailwind. They consume the CSS variables from index.css.
 
@@ -146,7 +150,8 @@
             - select.jsx: Dropdown menus for selecting tiers or roles.
 
 ## Step 3
-    -  Service Layer
+-  Service Layer
+
         - src/services/
             - These files abstract API calls using axios (or fetch) and TanStack Query
             - auth.service.js: Handles /login, /signup, and token management.
@@ -157,7 +162,8 @@
             - analytics.service.js: Retrieves dashboard statistics (revenue, active subs) for the Creator Dashboard.
 
 ## Step 4
-    - Layout Modules
+- Layout Modules
+
         - src/layouts/CreatorLayout.jsx
             - Role: Creator Only
             - Sidebar: Glass-morphism navigation with links to Dashboard, Tiers, and Content.
@@ -170,7 +176,8 @@
             - Header: Search bar, notification bell, and user menu.
 
 ## Step 5
-    - Authentication Pages
+- Authentication Pages
+
         - pages/Login.jsx
             - Form for email/password.
             - Redirects based on user role (Creator → Dashboard, Subscriber → Feed).
@@ -179,7 +186,8 @@
             - Includes a role selector (Creator vs. Subscriber).
 
 ## Step 6
-    - Creator Pages
+- Creator Pages
+
         - pages/DashboardHome.jsx
             - Displays Revenue, Active Subs, Total Tiers, and Content count with animated counters.
             - Recent Activity Table: Shows latest subscriber actions.
@@ -195,7 +203,8 @@
             - Form to add title, description, file URL, and assign access tiers.
 
 ## Step 7
-    - Subscriber Pages
+- Subscriber Pages
+
         - pages/Feed.jsx:
             - Infinite-scroll style list of content cards from subscribed creators.
             - Interactions: Like, Comment, Share buttons (visual), and "View Content" action.
@@ -211,19 +220,40 @@
             - Pricing table allowing subscribers to choose and buy a tier directly.
             - Handles the subscription mutation and redirects to the subscriptions page upon success.
 
+## Testing: User Service & Content Flow
+
+## Backend Unit Tests: user.test.js
+ Validate the business logic of user-related service functions in complete isolation from the database.
+
+- Verifies that searching with an empty query returns the 5 most recent creators, while searching with a keyword filters users by username using partial matching.
+- Confirms that requesting a creator's profile returns both user details and their pricing tiers in ascending order, while requesting a non-creator returns only user details with an empty tiers list.
+- Ensures that requesting a non-existent user properly throws a "User not found" error.
+
+## Frontend E2E Tests: content.e2e.spec.js
+Validate the complete user journey for content creation, from authentication through UI interaction to backend persistence and deletion.
+What Gets Tested:
+- User signup, login, and JWT token generation via API.
+- Creating a pricing tier that will be associated with content.
+- Injecting the authentication token into the browser before the application loads.
+- Opening the content modal, filling form fields, and selecting a tier from a dynamic dropdown.
+- Submitting the form and verifying the new content appears in the list.
+- Removing content and confirming it disappears from the UI.
+Testing Strategy:
+- Tests span API endpoints, authentication middleware, React components, and state management.
+
 # Summary
-        Patreon+ is a modular, production-ready Node.js/Express API built for a creator subscription platform. It empowers creators to design tiered membership plans, publish time-unlocked content, and manage subscriber access, while enabling subscribers to discover creators, purchase tiers, and consume exclusive material.The architecture follows a clean, service-layer pattern that strictly separates HTTP routing, business logic, and data access, ensuring high maintainability and testability.
+Patreon+ is a modular, production-ready Node.js/Express API built for a creator subscription platform. It empowers creators to design tiered membership plans, publish time-unlocked content, and manage subscriber access, while enabling subscribers to discover creators, purchase tiers, and consume exclusive material.The architecture follows a clean, service-layer pattern that strictly separates HTTP routing, business logic, and data access, ensuring high maintainability and testability.
 
 # References
-    - React : https://react.dev
-    - Vite : https://vitejs.dev
-    - shadcn/ui : https://ui.shadcn.com
-    - TanStack Query : https://tanstack.com/query/latest
-    - Framer Motion : https://www.framer.com/motion/
-    - Sonner : https://sonner.emilkowal.ski
-    - Lucid React : https://lucide.dev
-    - Node.js : https://nodejs.org/en/docs
-    - Express.js : https://expressjs.com
-    - PostgreSQL : https://www.postgresql.org/docs
-    - Sequelize : https://sequelize.org/docs/v6/
-    - GitHub : https://docs.github.com
+- React : https://react.dev
+- Vite : https://vitejs.dev
+- shadcn/ui : https://ui.shadcn.com
+- TanStack Query : https://tanstack.com/query/latest
+- Framer Motion : https://www.framer.com/motion/
+- Sonner : https://sonner.emilkowal.ski
+- Lucid React : https://lucide.dev
+- Node.js : https://nodejs.org/en/docs
+- Express.js : https://expressjs.com
+- PostgreSQL : https://www.postgresql.org/docs
+- Sequelize : https://sequelize.org/docs/v6/
+- GitHub : https://docs.github.com
