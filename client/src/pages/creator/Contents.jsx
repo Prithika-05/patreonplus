@@ -51,7 +51,6 @@ const Contents = () => {
     createMutation.mutate(formData);
   };
 
-  // Helper to determine icon based on URL extension
   const getFileIcon = (url) => {
     if (!url) return <FileText className="h-6 w-6" />;
     if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return <ImageIcon className="h-6 w-6" />;
@@ -71,7 +70,6 @@ const Contents = () => {
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Content Library</h2>
@@ -86,7 +84,6 @@ const Contents = () => {
             </Button>
           </DialogTrigger>
           
-          {/* Enhanced Modal Design */}
           <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-border/50">
             <div className="bg-gradient-to-r from-primary to-violet-600 p-6 text-primary-foreground">
               <DialogHeader>
@@ -167,28 +164,6 @@ const Contents = () => {
                 </div>
               </div>
 
-              {/* Live Preview Card */}
-              <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Preview</p>
-                <div className="relative overflow-hidden rounded-lg bg-card border border-border shadow-sm">
-                  <div className="aspect-video w-full bg-secondary/50 flex items-center justify-center text-muted-foreground">
-                     {getFileIcon(formData.fileUrl)}
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                       <h4 className="font-bold text-sm text-foreground truncate pr-2">{formData.title || 'Untitled Content'}</h4>
-                       {formData.tierId && (
-                         <span className="flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                           <Lock className="h-3 w-3" />
-                           {tiers?.find(t => t.id === formData.tierId)?.name}
-                         </span>
-                       )}
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{formData.description || 'No description provided.'}</p>
-                  </div>
-                </div>
-              </div>
-
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
@@ -202,7 +177,6 @@ const Contents = () => {
         </Dialog>
       </div>
 
-      {/* Content Grid */}
       {contents && contents.length > 0 ? (
         <motion.div 
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
@@ -223,14 +197,11 @@ const Contents = () => {
                   whileHover={{ y: -5 }}
                   className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
                 >
-                  {/* Media Placeholder / Thumbnail */}
                   <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
-                     {/* In a real app, you'd render an <img> or <video> tag here if the URL allows */}
                      <div className="text-muted-foreground/40 transform group-hover:scale-110 transition-transform duration-500">
                         {getFileIcon(content.fileUrl)}
                      </div>
                      
-                     {/* Locked Overlay Badge */}
                      <div className="absolute top-3 right-3">
                         <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-white border border-white/10">
                           <Lock className="h-3 w-3" />

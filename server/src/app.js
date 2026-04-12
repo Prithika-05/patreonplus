@@ -18,11 +18,11 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/tiers", tierRoutes);
-app.use("/api/contents", contentRoutes);
-app.use("/api/subscriptions",subscriptionRoutes)
-app.use("/api/users",userRoutes)
+app.use("/auth", authRoutes);
+app.use("/tiers", tierRoutes);
+app.use("/contents", contentRoutes);
+app.use("/subscriptions",subscriptionRoutes)
+app.use("/users",userRoutes)
 
 app.get("/", (req, res) => {
   res.json({ message: "Patreon+ API Running" });

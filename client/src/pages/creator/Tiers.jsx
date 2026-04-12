@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Trash2, Edit, Crown, Clock, DollarSign, Sparkles, Package } from 'lucide-react';
+import { Plus, Trash2, Edit, Crown, Clock, DollarSign, Sparkles, Package, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Tiers = () => {
