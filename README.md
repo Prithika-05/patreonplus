@@ -1,6 +1,9 @@
 # Introduction
 Patreon+ is a modern, full-stack creator subscription platform designed to streamline the relationship between content creators and their audiences. The system enables creators to publish exclusive content, define customizable membership tiers with time-bound access, and track subscriber engagement. Subscribers can discover creators, subscribe to specific tiers, and consume time-unlocked content through an intuitive, role-based interface.
 
+## Access URL of application
+http://54.154.142.197/
+
 # Patreon Docs - Backend
 A robust, Node.js/Express backend for a creator subscription platform. The system enables creators to publish exclusive content, manage subscription tiers with custom pricing and access durations, and track subscribers. Subscribers can discover creators, subscribe to specific tiers, and access time-unlocked content. Built with a clean MVC-inspired architecture, JWT-based authentication, and PostgreSQL via Sequelize ORM.
 
