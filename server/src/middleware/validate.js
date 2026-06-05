@@ -2,7 +2,7 @@
 
 const validate = (schema, source = "body") => {
   return (req, res, next) => {
-    try {
+  
       const data = req[source];
 
       const result = schema.safeParse(data);
@@ -25,12 +25,6 @@ const validate = (schema, source = "body") => {
       req[source] = result.data;
 
       next();
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Validation middleware error",
-      });
-    }
   };
 };
 
