@@ -11,7 +11,7 @@ const createTierSchema = z.object({
     .string()
     .trim()
     .max(500, "Description cannot exceed 500 characters")
-    .nullable() // Allows explicit null
+    .nullable() 
     .optional(),
 
   price: z

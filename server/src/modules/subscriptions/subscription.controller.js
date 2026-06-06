@@ -21,11 +21,25 @@ const subscribe = async (req, res) => {
 };
 
 const getMySubscriptions = async (req, res) => {
-  const subscriptions = await subscriptionService.getMySubscriptions(
-    req.user.id,
-  );
+  try {
 
-  res.json(subscriptions);
+    const subscriptions = await subscriptionService.getMySubscriptions(
+      req.user.id,
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: subscriptions
+    });
+  } catch (error) {
+    console.error("Get My Subscriptions Error:", error);
+    
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch subscriptions",
+      error: error.message
+    });
+  }
 };
 
 const cancelSubscription = async (req, res) => {
