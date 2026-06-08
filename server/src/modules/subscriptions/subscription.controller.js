@@ -26,11 +26,8 @@ const getMySubscriptions = async (req, res) => {
     const subscriptions = await subscriptionService.getMySubscriptions(
       req.user.id,
     );
-
-    return res.status(200).json({
-      success: true,
-      data: subscriptions
-    });
+    res.json(subscriptions);
+    
   } catch (error) {
     console.error("Get My Subscriptions Error:", error);
     

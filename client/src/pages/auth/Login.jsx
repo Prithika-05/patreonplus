@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { loginSchema } from "@/validations/auth.schema";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,15 +15,32 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
 
   const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setErrors({});
     
+     const validation = loginSchema.safeParse({
+      email,
+      password,
+      });
+
+      if (!validation.success) {
+        const fieldErrors = {};
+
+        validation.error.issues.forEach((issue) => {
+          fieldErrors[issue.path[0]] = issue.message;
+        });
+
+        setErrors(fieldErrors);
+        setIsLoading(false);
+        return;
+      }
+
     try {
       const user = await login(email, password);
       if (user.role === 'creator') {
@@ -31,11 +49,12 @@ const Login = () => {
         navigate('/subscriber/feed', { replace: true });
       }
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setErrors('Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-background via-background to-indigo-50/50 dark:to-indigo-950/20 p-4">
@@ -51,9 +70,9 @@ const Login = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {error && (
+            {Object.keys(errors).length > 0 && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive text-center animate-in fade-in slide-in-from-top-2">
-                {error}
+                {Object.values(errors)[0]}
               </div>
             )}
             
