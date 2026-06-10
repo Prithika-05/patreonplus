@@ -2,6 +2,8 @@ const Content = require("./content.model");
 const { Op } = require("sequelize");
 const Subscription = require("../subscriptions/subscription.model");
 const Tier = require("../tiers/tier.model");
+const AppError = require("../../utils/AppError");
+
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
@@ -66,7 +68,10 @@ const getContentById = async (id, userId) => {
   });
 
   if (!content) {
-    throw new Error("Content not found");
+    throw new AppError(
+      "Content not found",
+      404
+    );
   }
 
   if (content.creatorId !== userId) {
@@ -79,7 +84,10 @@ const deleteContent = async (id, userId) => {
   const content = await Content.findByPk(id);
 
   if (!content) {
-    throw new Error("Content not found");
+    throw new AppError(
+      "Content not found",
+      404
+    );
   }
 
   if (content.creatorId !== userId) {

@@ -6,6 +6,7 @@ const tierRoutes = require("./modules/tiers/tier.routes");
 const contentRoutes = require("./modules/contents/content.routes");
 const subscriptionRoutes = require("./modules/subscriptions/subscription.routes")
 const userRoutes = require("./modules/users/user.routes")
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -23,6 +24,8 @@ app.use("/tiers", tierRoutes);
 app.use("/contents", contentRoutes);
 app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
+
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.json({ message: "Patreon+ API Running" });

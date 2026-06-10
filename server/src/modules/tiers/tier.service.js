@@ -1,4 +1,5 @@
 const Tier = require("./tier.model");
+const AppError = require("../../utils/AppError");
 
 const createTier = async (data, creatorId) => {
   const lastTier = await Tier.findOne({
@@ -36,10 +37,18 @@ const getTierById = async (id, creatorId) => {
 const updateTier = async (id, data, creatorId) => {
   const tier = await Tier.findByPk(id);
 
-  if (!tier) throw new Error("Tier not found");
+  if (!tier) {
+  throw new AppError(
+    "Tier not found",
+    404
+  );
+  }
 
   if (tier.creatorId !== creatorId) {
-    throw new Error("Unauthorized");
+    throw new AppError(
+      "Unauthorized",
+      403
+    );
   }
 
   await tier.update(data);
@@ -50,10 +59,18 @@ const updateTier = async (id, data, creatorId) => {
 const deleteTier = async (id, creatorId) => {
   const tier = await Tier.findByPk(id);
 
-  if (!tier) throw new Error("Tier not found");
+  if (!tier) {
+  throw new AppError(
+    "Tier not found",
+    404
+  );
+  }
 
   if (tier.creatorId !== creatorId) {
-    throw new Error("Unauthorized");
+    throw new AppError(
+      "Unauthorized",
+      403
+    );
   }
 
   await tier.destroy();
@@ -64,10 +81,18 @@ const reorderTiers = async (tiers, creatorId) => {
   for (const t of tiers) {
     const tier = await Tier.findByPk(t.id);
 
-    if (!tier) throw new Error("Tier not found");
+    if (!tier) {
+    throw new AppError(
+      "Tier not found",
+      404
+    );
+    }
 
     if (tier.creatorId !== creatorId) {
-      throw new Error("Unauthorized");
+      throw new AppError(
+        "Unauthorized",
+        403
+      );
     }
 
     await tier.update({ level: t.level });
@@ -78,6 +103,7 @@ const reorderTiers = async (tiers, creatorId) => {
     order: [["level", "ASC"]],
   });
 };
+
 module.exports = {
   createTier,
   getAllTiers,

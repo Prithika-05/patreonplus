@@ -1,13 +1,17 @@
 const User = require("../users/user.model");
 const jwt = require("jsonwebtoken");
 const { hashPassword, comparePassword } = require("../../utils/password");
+const AppError = require("../../utils/AppError");
 
 const signup = async (data) => {
 
   const existingUser = await User.findOne({ where: { email: data.email } });
 
   if (existingUser) {
-    throw new Error("Email already registered");
+        throw new AppError(
+      "User already exists",
+      409
+    );
   }
 
   const hashedPassword = await hashPassword(data.password);
@@ -28,7 +32,10 @@ const login = async (email, password) => {
   const user = await User.findOne({ where: { email } });
 
   if (!user) {
-    throw new Error("Invalid credentials");
+    throw new AppError(
+      "Invalid credentials",
+      401
+    );
   }
 
   const validPassword = await comparePassword(password, user.password);

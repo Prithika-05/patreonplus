@@ -1,19 +1,15 @@
 const tierService = require("./tier.service");
+const asyncHandler = require("../../utils/asyncHandler");
 
-const createTier = async (req, res) => {
-  try {
+const createTier = asyncHandler(async (req, res) => {
     const tier = await tierService.createTier(req.body, req.user.id);
 
-    res.status(201).json({
-      message: "Tier created successfully",
-      tier,
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+    return res.status(201).json({
+    success: true,
+    message: "Tier created successfully",
+    data: tier,
+  });
+});
 
 const getAllTiers = async (req, res) => {
   const tiers = await tierService.getAllTiers(req.user.id);
