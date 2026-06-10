@@ -49,7 +49,7 @@ const Login = () => {
         navigate('/subscriber/feed', { replace: true });
       }
     } catch (err) {
-      setErrors('Invalid email or password. Please try again.');
+      setErrors({ form: 'Invalid email or password. Please try again.' });
     } finally {
       setIsLoading(false);
     }

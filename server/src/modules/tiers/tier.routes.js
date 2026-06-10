@@ -23,6 +23,7 @@ router.get(
   "/:id",
   authenticate,
   authorizeRole("creator"),
+  validate(tierIdSchema, "params"),
   tierController.getTierById,
 );
 

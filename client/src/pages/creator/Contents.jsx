@@ -10,11 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Plus, Trash2, ExternalLink, FileText, Image as ImageIcon, Video, Lock, Sparkles, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { contentSchema } from "@/validations/content.schema";
 
 const Contents = () => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', fileUrl: '', tierId: '' });
+  const [errors, setErrors] = useState({});
 
   const { data: contents, isLoading } = useQuery({
     queryKey: ['contents'],
@@ -48,6 +50,23 @@ const Contents = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const validation = contentSchema.safeParse(formData);
+
+    if (!validation.success) {
+      const fieldErrors = {};
+
+      validation.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+
+      return;
+    }
+
+    setErrors({});
+
     createMutation.mutate(formData);
   };
 
@@ -112,6 +131,11 @@ const Contents = () => {
                       className="pl-9"
                     />
                   </div>
+                  {errors.title && (
+                    <p className="text-sm text-destructive">
+                      {errors.title}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2 col-span-2">
@@ -126,6 +150,11 @@ const Contents = () => {
                       className="pl-9"
                     />
                   </div>
+                  {errors.description && (
+                    <p className="text-sm text-destructive">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2 col-span-2">
@@ -141,6 +170,11 @@ const Contents = () => {
                       className="pl-9 font-mono text-xs"
                     />
                   </div>
+                  {errors.fileUrl && (
+                    <p className="text-sm text-destructive">
+                      {errors.fileUrl}
+                    </p>
+                  )}
                   <p className="text-[10px] text-muted-foreground">Direct link to image, video, or document.</p>
                 </div>
 
@@ -161,6 +195,11 @@ const Contents = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.tierId && (
+                    <p className="text-sm text-destructive mt-1">
+                      {errors.tierId}
+                    </p>
+                  )}
                 </div>
               </div>
 

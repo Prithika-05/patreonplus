@@ -98,6 +98,11 @@ const Signup = () => {
                     disabled={isLoading}
                   />
                 </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name}
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -114,6 +119,11 @@ const Signup = () => {
                     disabled={isLoading}
                   />
                 </div>
+                {errors.username && (
+                  <p className="text-sm text-destructive">
+                    {errors.username}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -132,6 +142,11 @@ const Signup = () => {
                   disabled={isLoading}
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -149,6 +164,11 @@ const Signup = () => {
                   disabled={isLoading}
                 />
               </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

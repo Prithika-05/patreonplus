@@ -8,11 +8,14 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { toast } from 'sonner';
 import { Plus, Trash2, Edit, Crown, Clock, DollarSign, Sparkles, Package, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { tierSchema } from "@/validations/tier.schema";
 
 const Tiers = () => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editingTier, setEditingTier] = useState(null);
+  const [errors, setErrors] = useState({});
+
   const [formData, setFormData] = useState({ 
     name: '', 
     description: '', 
@@ -63,6 +66,21 @@ const Tiers = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const validation = tierSchema.safeParse(formData);
+
+    if (!validation.success) {
+      const fieldErrors = {};
+
+      validation.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0]] = issue.message;
+      });
+
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
+    
     const payload = {
       ...formData,
       price: parseFloat(formData.price),
@@ -146,6 +164,11 @@ const Tiers = () => {
                       className="pl-9"
                     />
                   </div>
+                  {errors.name && (
+                      <p className="text-sm text-destructive">
+                        {errors.name}
+                      </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -160,6 +183,11 @@ const Tiers = () => {
                       className="pl-9"
                     />
                   </div>
+                  {errors.description && (
+                    <p className="text-sm text-destructive">
+                      {errors.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -178,6 +206,11 @@ const Tiers = () => {
                         className="pl-9 font-mono"
                       />
                     </div>
+                    {errors.price && (
+                      <p className="text-sm text-destructive">
+                        {errors.price}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="duration" className="text-sm font-semibold">Duration (Days)</Label>
@@ -193,6 +226,11 @@ const Tiers = () => {
                         className="pl-9 font-mono"
                       />
                     </div>
+                    {errors.unlockDuration && (
+                      <p className="text-sm text-destructive">
+                        {errors.unlockDuration}
+                      </p>
+                    )}
                   </div>
                 </div>
 
