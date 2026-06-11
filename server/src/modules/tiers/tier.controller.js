@@ -2,70 +2,65 @@ const tierService = require("./tier.service");
 const asyncHandler = require("../../utils/asyncHandler");
 
 const createTier = asyncHandler(async (req, res) => {
-    const tier = await tierService.createTier(req.body, req.user.id);
+  const tier = await tierService.createTier(req.body, req.user.id);
 
-    return res.status(201).json({
+  return res.status(201).json({
     success: true,
     message: "Tier created successfully",
     data: tier,
   });
 });
 
-const getAllTiers = async (req, res) => {
+const getAllTiers = asyncHandler(async (req, res) => {
   const tiers = await tierService.getAllTiers(req.user.id);
 
-  res.json(tiers);
-};
+  return res.status(200).json({
+    success: true,
+    data: tiers,
+  });
+});
 
-const getTierById = async (req, res) => {
+const getTierById = asyncHandler(async (req, res) => {
   const tier = await tierService.getTierById(req.params.id, req.user.id);
 
-  res.json(tier);
-};
+  return res.status(200).json({
+    success: true,
+    data: tier,
+  });
+});
 
-const updateTier = async (req, res) => {
-  try {
-    const tier = await tierService.updateTier(
-      req.params.id,
-      req.body,
-      req.user.id,
-    );
-    res.json({
-      message: "Tier updated",
-      tier,
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+const updateTier = asyncHandler(async (req, res) => {
+  const tier = await tierService.updateTier(
+    req.params.id,
+    req.body,
+    req.user.id
+  );
 
-const deleteTier = async (req, res) => {
-  try {
-    await tierService.deleteTier(req.params.id, req.user.id);
-    res.json({
-      message: "Tier deleted",
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+  return res.status(200).json({
+    success: true,
+    message: "Tier updated successfully",
+    data: tier,
+  });
+});
 
-const reorderTiers = async (req, res) => {
-  try {
-    const tiers = await tierService.reorderTiers(req.body, req.user.id);
+const deleteTier = asyncHandler(async (req, res) => {
+  await tierService.deleteTier(req.params.id, req.user.id);
 
-    res.json({
-      message: "Tiers reordered successfully",
-      tiers,
-    });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+  return res.status(200).json({
+    success: true,
+    message: "Tier deleted successfully",
+  });
+});
+
+const reorderTiers = asyncHandler(async (req, res) => {
+  const tiers = await tierService.reorderTiers(req.body, req.user.id);
+
+  return res.status(200).json({
+    success: true,
+    message: "Tiers reordered successfully",
+    data: tiers,
+  });
+});
 
 module.exports = {
   createTier,

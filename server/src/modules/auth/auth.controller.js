@@ -3,11 +3,12 @@ const asyncHandler = require("../../utils/asyncHandler");
 
 
 const signup = asyncHandler(async (req, res) => {
-    const user = await authService.signup(req.body);
+  const user = await authService.signup(req.body);
 
-    return res.status(201).json({
+  return res.status(201).json({
     success: true,
-    data: result,
+    message: "Account created successfully",
+    data: user,
   });
 });
 

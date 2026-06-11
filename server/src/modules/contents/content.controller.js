@@ -1,86 +1,72 @@
 const contentService = require("./content.service");
+const asyncHandler = require("../../utils/asyncHandler");
 
-const createContent = async (req, res) => {
-  try {
-    const content = await contentService.createContent(req.body, req.user.id);
+const createContent = asyncHandler(async (req, res) => {
+    const content =
+      await contentService.createContent(
+        req.body,
+        req.user.id
+      );
 
-    res.status(201).json({
+    return res.status(201).json({
+      success: true,
       message: "Content created successfully",
-      content,
+      data: content,
     });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+  });
 
-const updateContent = async (req, res) => {
-  try {
-    const content = await contentService.updateContent(
-      req.params.id,
-      req.body,
-      req.user.id,
-    );
-    res.status(201).json({
-      message: "Content updated successfully",
-      content,
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+const updateContent = asyncHandler(async (req, res) => {
+  const content = await contentService.updateContent(
+    req.params.id,
+    req.body,
+    req.user.id
+  );
+  
+  return res.status(201).json({
+    success: true,
+    message: "Content updated successfully",
+    data: content,
+  });
+});
 
-const getAllContents = async (req, res) => {
+const getAllContents = asyncHandler(async (req, res) => {
   const contents = await contentService.getAllContents(req.user.id);
-  res.json(contents);
-};
+  
+  return res.status(200).json({
+    success: true,
+    data: contents,
+  });
+});
 
-const getContentById = async (req, res) => {
-  try {
-    const content = await contentService.getContentById(
-      req.params.id,
-      req.user.id,
-    );
-    res.json(content);
-  } catch (error) {
-    if (error.message === "Content not found") {
-      return res.status(404).json({ message: error.message });
-    }
-    if (
-      error.message.includes("Access denied") ||
-      error.message.includes("Unauthorized")
-    ) {
-      return res.status(403).json({ message: error.message });
-    }
-    res.status(500).json({ message: error.message });
-  }
-};
+const getContentById = asyncHandler(async (req, res) => {
+  const content = await contentService.getContentById(
+    req.params.id,
+    req.user.id
+  );
+  
+  return res.status(200).json({
+    success: true,
+    data: content,
+  });
+});
 
-const deleteContent = async (req, res) => {
-  try {
-    await contentService.deleteContent(req.params.id, req.user.id);
+const deleteContent = asyncHandler(async (req, res) => {
+  await contentService.deleteContent(req.params.id, req.user.id);
 
-    res.json({
-      message: "Content deleted",
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error.message,
-    });
-  }
-};
+  return res.status(200).json({
+    success: true,
+    message: "Content deleted successfully",
+  });
+});
 
-const getSubscriberFeed = async (req, res) => {
-  try {
-    const contents = await contentService.getSubscriberFeed(req.user.id);
-    res.json(contents);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+const getSubscriberFeed = asyncHandler(async (req, res) => {
+  const contents = await contentService.getSubscriberFeed(req.user.id);
+  
+  return res.status(200).json({
+    success: true,
+    data: contents,
+  });
+});
 
 module.exports = {
   createContent,

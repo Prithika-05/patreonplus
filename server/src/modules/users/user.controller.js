@@ -17,9 +17,9 @@ const getPublicProfile = async (req, res) => {
   try {
     const { username } = req.params;
     const profile = await userService.getPublicProfile(username);
-     return res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: users,
+      data: profile,
     });
   }
   catch (error) {
