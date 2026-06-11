@@ -15,7 +15,11 @@ const Content = sequelize.define(
 
     title: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [3, 150]
+      }
     },
 
     description: {
@@ -25,7 +29,11 @@ const Content = sequelize.define(
 
     fileUrl: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        isUrl: true
+      }
     }
   },
   {

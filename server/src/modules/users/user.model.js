@@ -12,7 +12,11 @@ const User = sequelize.define(
 
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [3, 50]
+      }
     },
     
     username: {
@@ -20,7 +24,9 @@ const User = sequelize.define(
       allowNull: false,
       unique: true,
       validate: {
-        len: [3, 30]
+        notEmpty: true,
+        len: [3, 20],
+        is: /^[a-zA-Z0-9_]+$/
       }
     },
     
@@ -35,7 +41,10 @@ const User = sequelize.define(
 
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      validate: {
+        notEmpty: true
+      }
     },
 
     role: {

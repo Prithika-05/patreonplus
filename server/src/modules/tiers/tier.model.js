@@ -14,6 +14,10 @@ const Tier = sequelize.define(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [3, 100]
+      }
     },
 
     description: {
@@ -29,6 +33,10 @@ const Tier = sequelize.define(
     unlockDuration: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        min: 1,
+        max: 3650
+      }
     },
 
     level: {
