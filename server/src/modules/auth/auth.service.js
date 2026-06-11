@@ -41,7 +41,7 @@ const login = async (email, password) => {
   const validPassword = await comparePassword(password, user.password);
 
   if (!validPassword) {
-    throw new Error("Invalid credentials");
+    throw new AppError("Invalid credentials", 401);
   }
 
   const token = jwt.sign(

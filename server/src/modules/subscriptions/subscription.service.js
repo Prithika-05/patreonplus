@@ -1,14 +1,25 @@
 const Subscription = require("./subscription.model");
 const Tier = require("../tiers/tier.model");
+const AppError = require("../../utils/AppError");
 
 const subscribe = async (userId, tierId) => {
   const tier = await Tier.findByPk(tierId);
 
   if (!tier) {
-    throw new Error("Tier not found");
+  throw new AppError(
+      "Tier not found",
+      404
+    );
   }
 
   const creatorId = tier.creatorId;
+
+  if (creatorId === userId) {
+    throw new AppError(
+      "You cannot subscribe to your own tier",
+      400
+    );
+  }
 
   let subscription = await Subscription.findOne({
     where: {
@@ -56,11 +67,17 @@ const cancelSubscription = async (id, userId) => {
   const subscription = await Subscription.findByPk(id);
 
   if (!subscription) {
-    throw new Error("Subscription not found");
+    throw new AppError(
+      "Subscription not found",
+      404
+    );
   }
 
   if (subscription.subscriberId !== userId) {
-    throw new Error("Unauthorized");
+      throw new AppError(
+      "Unauthorized",
+      403
+    );
   }
 
   subscription.status = "cancelled";

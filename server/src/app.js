@@ -7,6 +7,7 @@ const contentRoutes = require("./modules/contents/content.routes");
 const subscriptionRoutes = require("./modules/subscriptions/subscription.routes")
 const userRoutes = require("./modules/users/user.routes")
 const errorHandler = require("./middleware/errorHandler");
+const sanitize = require("./middleware/sanitize");
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(sanitize);
 
 app.use("/auth", authRoutes);
 app.use("/tiers", tierRoutes);

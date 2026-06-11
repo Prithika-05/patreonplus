@@ -1,19 +1,22 @@
 // server/src/validations/auth.validation.js
 
 const { z } = require("zod");
+const CONSTANTS = require(
+  "../constants/validation.constants"
+);
 
 const signupSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(3, "Name must be at least 3 characters")
-    .max(50, "Name cannot exceed 50 characters"),
+    .min(CONSTANTS.NAME_MIN, "Name must be at least 3 characters")
+    .max(CONSTANTS.NAME_MAX, "Name cannot exceed 50 characters"),
 
   username: z
     .string()
     .trim()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username cannot exceed 20 characters")
+    .min(CONSTANTS.NAME_MIN, "Username must be at least 3 characters")
+    .max(CONSTANTS.NAME_MAX, "Username cannot exceed 20 characters")
     .regex(
       /^[a-zA-Z0-9_]+$/,
       "Username can only contain letters, numbers and underscores"
@@ -26,7 +29,7 @@ const signupSchema = z.object({
 
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
+    .min(CONSTANTS.PASSWORD_MIN, "Password must be at least 8 characters")
     .regex(
       /[A-Z]/,
       "Password must contain at least one uppercase letter"

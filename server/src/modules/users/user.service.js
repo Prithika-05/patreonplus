@@ -30,7 +30,12 @@ const getPublicProfile = async (username) => {
     attributes: ['id', 'name', 'username', 'bio', 'profileImage', 'role']
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    throw new AppError(
+      "User not found",
+      404
+    );
+  }
   
   let tiers = [];
   if (user.role === 'creator') {

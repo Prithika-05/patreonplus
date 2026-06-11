@@ -7,17 +7,41 @@ const AppError = require("../../utils/AppError");
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
-    throw new Error("tierId is required");
+    throw new AppError(
+      "Tier ID is required",
+      400
+    );
   }
 
   const tier = await Tier.findByPk(data.tierId);
 
   if (!tier) {
-    throw new Error("Invalid tier");
+    throw new AppError(
+      "Invalid tier",
+      404
+    );
   }
 
   if (tier.creatorId !== creatorId) {
-    throw new Error("You cannot use this tier");
+    throw new AppError(
+      "You cannot use this tier",
+      403
+    );
+  }
+
+  const existingContent =
+    await Content.findOne({
+      where: {
+        creatorId,
+        title: data.title,
+      },
+    });
+
+  if (existingContent) {
+    throw new AppError(
+      "Content with this title already exists",
+      409
+    );
   }
 
   return await Content.create({
@@ -32,19 +56,44 @@ const createContent = async (data, creatorId) => {
 const updateContent = async (id, data, creatorId) => {
   const content = await Content.findByPk(id);
 
+  if (!content) {
+  throw new AppError(
+    "Content not found",
+    404
+  );
+}
+
+  if (
+  content.creatorId !== creatorId
+  ) {
+    throw new AppError(
+      "Unauthorized",
+      403
+    );
+  }
+
   if (!data.tierId) {
-    throw new Error("tierId is required");
+    throw new AppError(
+      "Tier ID is required",
+      400
+    );
   }
 
   const tier = await Tier.findByPk(data.tierId);
 
   if (!tier) {
-    throw new Error("Invalid tier");
+      throw new AppError(
+      "Invalid tier",
+      404
+    );
   }
 
   if (tier.creatorId !== creatorId) {
-    throw new Error("You cannot use this tier");
-  }
+      throw new AppError(
+        "You cannot use this tier",
+        403
+      );
+    }
 
   await content.update(data);
   return content;
@@ -57,7 +106,10 @@ const getAllContents = async (creatorId) => {
 
 const getContentById = async (id, userId) => {
   if (!userId) {
-    throw new Error("User ID is required to access content");
+    throw new AppError(
+      "User ID is required",
+      400
+    );
   }
 
   const content = await Content.findOne({
@@ -75,7 +127,10 @@ const getContentById = async (id, userId) => {
   }
 
   if (content.creatorId !== userId) {
-    throw new Error("Unauthorized to access this content");
+    throw new AppError(
+      "Unauthorized",
+      403
+    );
   }
 
   return content;
@@ -91,7 +146,10 @@ const deleteContent = async (id, userId) => {
   }
 
   if (content.creatorId !== userId) {
-    throw new Error("Unauthorized to delete this content");
+    throw new AppError(
+      "Unauthorized",
+      403
+    );
   }
 
   await content.destroy();
