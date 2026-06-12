@@ -15,10 +15,14 @@ const PublicProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profileResponse, isLoading } = useQuery({
     queryKey: ['public-profile', username],
     queryFn: () => userService.getPublicProfile(username),
   });
+
+  const profile = Array.isArray(profileResponse)
+  ? profileResponse
+  : (profileResponse?.data || profileResponse?.data?.data || []);
 
   const subscribeMutation = useMutation({
     mutationFn: subscriptionService.subscribe,

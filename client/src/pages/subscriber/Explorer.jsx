@@ -35,11 +35,17 @@ const Explorer = () => {
     return () => clearTimeout(handler);
   }, [query]);
 
-  const { data: users, isLoading } = useQuery({
+  const { data: usersData, isLoading } = useQuery({
     queryKey: ['creators', debouncedQuery],
     queryFn: () => userService.searchUsers(debouncedQuery || null),
-    keepPreviousData: true, 
+    placeholderData: (previousData) => previousData, // Note: keepPreviousData was renamed to placeholderData in React Query v5
+    
+    select: (response) => {
+      return response?.data || response; 
+    } 
   });
+
+  const users = usersData?.data?.data || usersData?.data || (Array.isArray(usersData) ? usersData : []);
 
   const hasSearched = debouncedQuery.length > 0;
 

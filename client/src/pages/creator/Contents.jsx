@@ -18,20 +18,29 @@ const Contents = () => {
   const [formData, setFormData] = useState({ title: '', description: '', fileUrl: '', tierId: '' });
   const [errors, setErrors] = useState({});
 
-  const { data: contents, isLoading } = useQuery({
+const { data: contentsResponse, isLoading } = useQuery({
     queryKey: ['contents'],
-    queryFn: contentService.getAllContents,
+    queryFn: contentService.getAllContents, // Or your custom API function string
   });
 
-  const { data: tiers } = useQuery({
+  const contents = Array.isArray(contentsResponse)
+    ? contentsResponse
+    : (contentsResponse?.data || contentsResponse?.data?.data || []);
+    
+  const { data:  tiersResponse } = useQuery({
     queryKey: ['tiers'],
     queryFn: tierService.getAllTiers,
   });
 
+  const tiers = Array.isArray(tiersResponse) 
+  ? tiersResponse 
+  : (tiersResponse?.data || tiersResponse?.data?.data || []);
+
+
   const createMutation = useMutation({
     mutationFn: contentService.createContent,
     onSuccess: () => {
-      queryClient.invalidateQueries(['contents']);
+      queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content published successfully!');
       setOpen(false);
       setFormData({ title: '', description: '', fileUrl: '', tierId: '' });
@@ -42,7 +51,7 @@ const Contents = () => {
   const deleteMutation = useMutation({
     mutationFn: contentService.deleteContent,
     onSuccess: () => {
-      queryClient.invalidateQueries(['contents']);
+      queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content deleted');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to delete content'),
@@ -223,65 +232,76 @@ const Contents = () => {
           animate={{ opacity: 1 }}
           transition={{ staggerChildren: 0.1 }}
         >
-          <AnimatePresence>
-            {contents.map((content) => {
-              const tier = tiers?.find(t => t.id === content.tierId);
-              return (
-                <motion.div
-                  key={content.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ y: -5 }}
-                  className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
-                >
-                  <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
-                     <div className="text-muted-foreground/40 transform group-hover:scale-110 transition-transform duration-500">
+         <AnimatePresence>
+          {Array.isArray(contents) &&
+            (() => {
+              const flatTiers = Array.isArray(tiers)
+                ? tiers
+                : (tiers?.data || tiers?.data?.data || []);
+
+              return contents.map((content) => {
+                const tier = flatTiers.find((t) => t.id === content.tierId);
+                
+                return (
+                  <motion.div
+                    key={content.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    whileHover={{ y: -5 }}
+                    className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
+                  >
+                    <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
+                      <div className="text-muted-foreground/40 transform group-hover:scale-110 transition-transform duration-500">
                         {getFileIcon(content.fileUrl)}
-                     </div>
-                     
-                     <div className="absolute top-3 right-3">
+                      </div>
+
+                      <div className="absolute top-3 right-3">
                         <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-white border border-white/10">
                           <Lock className="h-3 w-3" />
-                          {tier?.name || 'Restricted'}
+                          {tier?.name || "Restricted"}
                         </span>
-                     </div>
-                  </div>
-                  
-                  <div className="flex flex-col flex-1 p-5">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-foreground leading-tight line-clamp-2">{content.title}</h3>
+                      </div>
                     </div>
-                    
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
-                      {content.description}
-                    </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
-                      <a 
-                        href={content.fileUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
-                      >
-                        View File <ExternalLink className="h-3 w-3" />
-                      </a>
-                      
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => deleteMutation.mutate(content.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="flex flex-col flex-1 p-5">
+                      <div className="mb-3 flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-foreground leading-tight line-clamp-2">
+                          {content.title}
+                        </h3>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+                        {content.description}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
+                        <a
+                          href={content.fileUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                        >
+                          View File <ExternalLink className="h-3 w-3" />
+                        </a>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => deleteMutation.mutate(content.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+                  </motion.div>
+                );
+              });
+            })()}
+        </AnimatePresence>
+
         </motion.div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/10 py-16 text-center">

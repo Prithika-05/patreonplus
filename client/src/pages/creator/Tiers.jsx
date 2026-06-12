@@ -23,15 +23,19 @@ const Tiers = () => {
     unlockDuration: '' 
   });
 
-  const { data: tiers, isLoading } = useQuery({
+  const { data: tiersResponse, isLoading } = useQuery({
     queryKey: ['tiers'],
     queryFn: tierService.getAllTiers,
   });
 
+  const tiers = Array.isArray(tiersResponse) 
+  ? tiersResponse 
+  : (tiersResponse?.data || tiersResponse?.data?.data || []);
+
   const createMutation = useMutation({
     mutationFn: tierService.createTier,
     onSuccess: () => {
-      queryClient.invalidateQueries(['tiers']);
+      queryClient.invalidateQueries( {queryKey: ['tiers']});
       toast.success('Tier created successfully!');
       setOpen(false);
       resetForm();
@@ -42,7 +46,7 @@ const Tiers = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => tierService.updateTier(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['tiers']);
+      queryClient.invalidateQueries({queryKey: ['tiers']});
       toast.success('Tier updated successfully!');
       setOpen(false);
       resetForm();
@@ -53,7 +57,7 @@ const Tiers = () => {
   const deleteMutation = useMutation({
     mutationFn: tierService.deleteTier,
     onSuccess: () => {
-      queryClient.invalidateQueries(['tiers']);
+      queryClient.invalidateQueries({queryKey: ['tiers']});
       toast.success('Tier deleted successfully');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to delete tier'),
@@ -129,13 +133,14 @@ const Tiers = () => {
         </div>
         
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-primary/20 group">
-              <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" /> 
-              Create New Tier
-            </Button>
-          </DialogTrigger>
-          
+            <DialogTrigger
+              render={
+                <Button className="shadow-lg shadow-primary/20 group">
+                  <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" /> 
+                  Create New Tier
+                </Button>
+              }
+            />          
           <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-border/50">
             <div className="bg-gradient-to-r from-primary to-violet-600 p-6 text-primary-foreground">
               <DialogHeader>
@@ -270,7 +275,7 @@ const Tiers = () => {
           transition={{ staggerChildren: 0.1 }}
         >
           <AnimatePresence>
-            {tiers.map((tier) => (
+            {(Array.isArray(tiers) ? tiers : (tiers?.data || tiers?.data?.data || [])).map((tier) => (
               <motion.div
                 key={tier.id}
                 layout

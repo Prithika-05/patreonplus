@@ -21,10 +21,14 @@ const itemVariants = {
 };
 
 const Feed = () => {
-  const { data: contents, isLoading } = useQuery({
+  const { data:   contentsResponse, isLoading } = useQuery({
     queryKey: ['subscriber-feed'],
     queryFn: contentService.getSubscriberFeed,
   });
+
+  const contents = Array.isArray(contentsResponse)
+    ? contentsResponse
+    : (contentsResponse?.data || contentsResponse?.data?.data || []);
 
   if (isLoading) {
     return (

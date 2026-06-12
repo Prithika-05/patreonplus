@@ -13,10 +13,14 @@ const MySubscriptions = () => {
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState(null);
 
-  const { data: subscriptions, isLoading } = useQuery({
+  const { data: subscriptionsResponse, isLoading } = useQuery({
     queryKey: ['my-subscriptions'],
     queryFn: subscriptionService.getMySubscriptions,
   });
+
+  const subscriptions = Array.isArray(subscriptionsResponse)
+  ? subscriptionsResponse
+  : (subscriptionsResponse?.data || subscriptionsResponse?.data?.data || []); 
 
   const cancelMutation = useMutation({
     mutationFn: subscriptionService.cancelSubscription,
