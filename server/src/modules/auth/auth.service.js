@@ -1,7 +1,10 @@
 const User = require("../users/user.model");
 const jwt = require("jsonwebtoken");
 const { hashPassword, comparePassword } = require("../../utils/password");
+
 const AppError = require("../../utils/AppError");
+const { randomUUID } = require("crypto");
+
 
 const signup = async (data) => {
 
@@ -44,10 +47,18 @@ const login = async (email, password) => {
     throw new AppError("Invalid credentials", 401);
   }
 
+  const jti = randomUUID();
+
   const token = jwt.sign(
-    { id: user.id, role: user.role },
+    {
+      id: user.id,
+      role: user.role,
+      jti,
+    },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    }
   );
 
   return { user, token };

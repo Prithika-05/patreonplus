@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
-const User = require("../users/user.model"); 
+const User = require("../users/user.model");
+const { isBlacklisted } = require("../tokenBlacklist/tokenBlacklist.service");
+const AppError = require("../../utils/AppError");
 
 const authenticate = async (req, res, next) => {
   try {
@@ -17,14 +19,26 @@ const authenticate = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    const blacklisted = await isBlacklisted(decoded.jti);
+
+    if (blacklisted) {
+      throw new AppError("Token has been revoked", 401);
+    }
+
     req.user = {
       id: decoded.id,
-      role: decoded.role
+      role: decoded.role,
+      jti: decoded.jti,
+      exp: decoded.exp 
     };
 
     next();
 
   } catch (error) {
+    
+    if (error instanceof AppError) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid token." });
     }
@@ -34,7 +48,6 @@ const authenticate = async (req, res, next) => {
     return res.status(500).json({ message: "Internal server error during authentication." });
   }
 };
-
 
 const authorizeRole = (...allowedRoles) => {
   return (req, res, next) => {
