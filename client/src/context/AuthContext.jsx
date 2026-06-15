@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem('accessToken');
 
     if (storedUser && storedToken && storedUser !== 'undefined' && storedUser !== 'null') {
       try {
@@ -30,13 +30,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      const { user, token } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      const { user, accessToken } = response.data;
       
       setUser(user);
-      setToken(token);
+      setToken(accessToken);
       
       toast.success(`Welcome back, ${user.name}`);
       return user; 

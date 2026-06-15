@@ -18,6 +18,18 @@ const login = asyncHandler(async (req, res) => {
 
   const result = await authService.login(email, password);
 
+  res.status(200).json({
+    success: true,
+    data: result,
+  });
+});
+
+// Added the refresh controller function here
+const refresh = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  const result = await authService.refresh(refreshToken);
+
   return res.status(200).json({
     success: true,
     data: result,
@@ -25,7 +37,6 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  
   const authHeader = req.headers.authorization;
 
   const token = authHeader.split(" ")[1];
@@ -46,5 +57,6 @@ const logout = asyncHandler(async (req, res) => {
 module.exports = {
   signup,
   login,
+  refresh, 
   logout,
 };

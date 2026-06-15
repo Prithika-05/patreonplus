@@ -8,6 +8,7 @@ const {authenticate} = require("./auth.middleware")
 const {
   signupSchema,
   loginSchema,
+  refreshSchema,
 } = require("../../validations/auth.validation");
 
 router.post("/signup",
@@ -17,6 +18,12 @@ router.post("/signup",
 router.post("/login", 
     validate(loginSchema),
     authController.login);
+
+router.post(
+  "/refresh",
+  validate(refreshSchema),
+  authController.refresh
+);
 
 router.post(
   "/logout",
