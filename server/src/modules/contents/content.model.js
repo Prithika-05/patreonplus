@@ -27,7 +27,7 @@ const Content = sequelize.define(
       allowNull: true
     },
 
-    fileUrl: {
+    fileKey: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {

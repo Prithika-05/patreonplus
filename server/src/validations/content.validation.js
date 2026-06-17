@@ -14,9 +14,9 @@ const createContentSchema = z.object({
     .nullable() 
     .optional(),
 
-  fileUrl: z
+  fileKey: z
     .string()
-    .url("Please provide a valid URL"),
+    .url("File key is required"),
 
   tierId: z
     .string({ required_error: "Tier selection is required" })
