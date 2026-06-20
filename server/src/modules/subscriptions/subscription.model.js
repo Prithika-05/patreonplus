@@ -27,6 +27,22 @@ const Subscription = sequelize.define(
       type: DataTypes.ENUM("active", "cancelled", "expired"),
       defaultValue: "active",
     },
+
+    checkoutSessionId: {
+      type: DataTypes.STRING,
+      allowNull: true, 
+      field: 'checkout_session_id' 
+    },
+
+    stripeCustomerId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    stripeSubscriptionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "subscriptions",

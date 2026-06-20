@@ -12,6 +12,7 @@ import Feed from '@/pages/subscriber/Feed';
 import Unauthorized from '@/pages/auth/Unauthorized';
 import Explorer from '@/pages/subscriber/Explorer';
 import PublicProfile from '@/pages/subscriber/PublicProfile';
+import PaymentSuccess from './pages/subscriber/PaymentSuccess';
 
 function App() {
   return (
@@ -44,12 +45,21 @@ function App() {
           } 
         >
           <Route path="feed" element={<Feed />} />
-          <Route path="subscriptions" element={<MySubscriptions />} />
+          <Route path="subscriptions" element={<MySubscriptions />} />      
           <Route path="explore" element={<Explorer />} />
           <Route path="profile/:username" element={<PublicProfile />} />
           <Route index element={<Navigate to="/subscriber/feed" replace />} />
         </Route>
-        
+        <Route
+          path="/subscriber/success"
+          element={
+            <ProtectedRoute
+              allowedRoles={['subscriber']}
+            >
+              <PaymentSuccess />
+            </ProtectedRoute>
+          }
+          />
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

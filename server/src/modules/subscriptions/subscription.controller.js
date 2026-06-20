@@ -1,3 +1,5 @@
+// server/src/modules/subscriptions/subscription.controller.js
+
 const subscriptionService = require("./subscription.service");
 const asyncHandler = require("../../utils/asyncHandler");
 
@@ -40,8 +42,45 @@ const cancelSubscription = asyncHandler(async (req, res) => {
   });
 });
 
+const checkPaymentStatus = asyncHandler(async (req, res) => {
+  const { session_id } = req.query;
+
+  if (!session_id) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing session_id query parameter",
+    });
+  }
+
+  try {
+    const subscription = await subscriptionService.getSubscriptionBySessionId(session_id);
+
+    if (!subscription) {
+      return res.status(200).json({
+        success: true,
+        status: "pending",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: subscription.status, 
+    });
+
+  } catch (rawError) {
+    return res.status(500).json({
+      success: false,
+      message: "Backend Diagnostic Triggered",
+      errorDetails: rawError.message,
+      stack: rawError.stack
+    });
+  }
+});
+
+
 module.exports = {
   subscribe,
   getMySubscriptions,
   cancelSubscription,
+  checkPaymentStatus, 
 };

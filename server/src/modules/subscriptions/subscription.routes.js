@@ -8,6 +8,7 @@ const validate = require("../../middleware/validate");
 const {
   subscribeSchema,
   subscriptionIdSchema,
+   checkStatusSchema, 
 } = require("../../validations/subscription.validation");
 
 router.post(
@@ -31,6 +32,13 @@ router.patch(
   authorizeRole("subscriber"),
   validate(subscriptionIdSchema, "params"),
   subscriptionController.cancelSubscription,
+);
+
+router.get(
+  "/status",
+  authenticate,
+  validate(checkStatusSchema, "query"),
+  subscriptionController.checkPaymentStatus
 );
 
 module.exports = router;
