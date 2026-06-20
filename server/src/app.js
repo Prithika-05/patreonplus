@@ -8,6 +8,8 @@ const subscriptionRoutes = require("./modules/subscriptions/subscription.routes"
 const userRoutes = require("./modules/users/user.routes")
 const errorHandler = require("./middleware/errorHandler");
 const sanitize = require("./middleware/sanitize");
+const paymentRoutes = require("./modules/payments/payment.routes");
+const webhookController = require("./modules/payments/webhook.controller");
 
 const app = express();
 
@@ -18,7 +20,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+app.post(
+  "/payments/webhook",
+  express.raw({ type: "application/json" }),
+  webhookController.handleWebhook
+);
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(sanitize);
 
 app.use("/auth", authRoutes);
@@ -26,6 +35,8 @@ app.use("/tiers", tierRoutes);
 app.use("/contents", contentRoutes);
 app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
+app.use( "/payments", paymentRoutes);
+
 
 app.use(errorHandler);
 
