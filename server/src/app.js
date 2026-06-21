@@ -49,13 +49,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitize);
 
+const analyticsRoutes = require("./modules/analytics/analytics.routes");
+
 app.use("/auth", authRoutes);
 app.use("/tiers", tierRoutes);
 app.use("/contents", contentRoutes);
 app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
 app.use( "/payments", paymentRoutes);
-
+app.use("/analytics", analyticsRoutes);
 
 app.use(errorHandler);
 
