@@ -1,9 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const User = require("../users/user.model");
-const Tier = require("../tiers/tier.model");
-
 const Subscription = sequelize.define(
   "Subscription",
   {
@@ -56,17 +53,17 @@ const Subscription = sequelize.define(
   },
 );
 
-Subscription.belongsTo(User, {
+Subscription.belongsTo(sequelize.models.User || 'User', {
   foreignKey: "subscriberId",
   as: "subscriber",
 });
 
-Subscription.belongsTo(User, {
+Subscription.belongsTo(sequelize.models.User || 'User', {
   foreignKey: "creatorId",
   as: "creator",
 });
 
-Subscription.belongsTo(Tier, {
+Subscription.belongsTo(sequelize.models.Tier || 'Tier', {
   foreignKey: "tierId",
   as: "tier",
 });
