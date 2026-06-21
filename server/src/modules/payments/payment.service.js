@@ -31,8 +31,14 @@ const createCheckoutSession = async (tierId, subscriberId) => {
     metadata: {
       tierId: tierId,
       subscriberId: subscriberId,
-      createdAt: Date.now().toString(),
     },
+
+      subscription_data: {
+        metadata: {
+          tierId: tierId,
+          subscriberId: subscriberId,
+        }
+      }
   });
 
   return session.url;

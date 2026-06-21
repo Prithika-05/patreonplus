@@ -21,7 +21,6 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Request Interceptor
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -30,14 +29,21 @@ api.interceptors.request.use((config) => {
   return config;
 }, (error) => Promise.reject(error));
 
-// Response Interceptor
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle completely dead connections / CORS drops safely
     if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
       return Promise.reject(error);
     }
 
@@ -63,12 +69,8 @@ api.interceptors.response.use(
           throw new Error("No refresh token available");
         }
 
-        // Leveraging the configured api instance prevents URL duplication typos
-        const response = await api.post('/auth/refresh', { refreshToken }, { 
-          _retry: true // Blocks this explicit request from looping back to interceptor
-        });
+        const response = await api.post('/auth/refresh', { refreshToken });
 
-        // FIXED: Handles both nested data envelopes and flat response payloads safely
         const { accessToken } = response.data?.data || response.data || {};
 
         if (!accessToken) {

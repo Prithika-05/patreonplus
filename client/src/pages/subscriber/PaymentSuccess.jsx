@@ -30,32 +30,41 @@ const PaymentSuccess = () => {
         attempts += 1;
         const token = localStorage.getItem("token");
 
-        const response = await api.get(
-          `/subscriptions/status?session_id=${sessionId}`
-        );
-        const data = response.data;
+         const response = await api.get(
+           '/subscriptions/my-subscriptions');
+          const data = response.data;
 
-        if (data.status === 'active' || data.status === 'success') {
+          if (data.status === 'active' || data.status === 'success') {
           clearInterval(intervalId);
-          queryClient.invalidateQueries({
-            queryKey: ['my-subscriptions']
-          }); 
-          setIsVerifying(false);
-        } else if (attempts >= maxAttempts) {
-          clearInterval(intervalId);
-          setIsVerifying(false);
-          setError("Taking longer than expected. Please check your dashboard in a moment.");
+
+          setTimeout(async () => {
+          try {
+              await queryClient.refetchQueries({
+                queryKey: ['my-subscriptions'],
+                exact: true
+              });
+            } catch (refetchError) {
+              console.error("Failed to refetch subscriptions:", refetchError);
+            } finally {
+              setIsVerifying(false);
+            }
+          }, 1500); 
         }
-      } catch (err) {
-        console.error("Error verifying payment:", err);
-      }
-    };
+      else if (attempts >= maxAttempts) {
+                clearInterval(intervalId);
+                setIsVerifying(false);
+                setError("Taking longer than expected. Please check your dashboard in a moment.");
+              }
+            } catch (err) {
+              console.error("Error verifying payment:", err);
+            }
+          };
 
     intervalId = setInterval(checkStatus, 2000);
     checkStatus(); 
 
     return () => clearInterval(intervalId);
-  }, [sessionId, queryClient]);
+    }, [sessionId, queryClient]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">

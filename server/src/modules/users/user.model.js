@@ -68,4 +68,16 @@ const User = sequelize.define(
   }
 );
 
+User.associate = (models) => {
+  User.hasMany(models.Subscription, {
+    foreignKey: "subscriberId",
+    as: "subscriberSubscriptions",
+  });
+
+  User.hasMany(models.Subscription, {
+    foreignKey: "creatorId",
+    as: "creatorSubscriptions",
+  });
+};
+
 module.exports = User;

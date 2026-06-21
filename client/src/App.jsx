@@ -48,18 +48,10 @@ function App() {
           <Route path="subscriptions" element={<MySubscriptions />} />      
           <Route path="explore" element={<Explorer />} />
           <Route path="profile/:username" element={<PublicProfile />} />
+          <Route path="success" element={<PaymentSuccess />} />
           <Route index element={<Navigate to="/subscriber/feed" replace />} />
         </Route>
-        <Route
-          path="/subscriber/success"
-          element={
-            <ProtectedRoute
-              allowedRoles={['subscriber']}
-            >
-              <PaymentSuccess />
-            </ProtectedRoute>
-          }
-          />
+        
         <Route path="/" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

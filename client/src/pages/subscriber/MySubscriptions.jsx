@@ -20,9 +20,12 @@ const MySubscriptions = () => {
     queryFn: subscriptionService.getMySubscriptions,
   });
 
+  console.log("Raw Subscriptions API response:", subscriptionsResponse);
+
   const subscriptions = Array.isArray(subscriptionsResponse)
   ? subscriptionsResponse
   : (subscriptionsResponse?.data || subscriptionsResponse?.data?.data || []); 
+
 
   const cancelMutation = useMutation({
     mutationFn: subscriptionService.cancelSubscription,
@@ -39,12 +42,10 @@ const MySubscriptions = () => {
     },
   });
 
-  // NEW STRIPE CHECKOUT MUTATION LAYER:
   const checkoutMutation = useMutation({
     mutationFn: createCheckout,
     onSuccess: (response) => {
       if (response?.data?.url) {
-        // Safe global redirect to Stripe hosted payment form
         window.location.href = response.data.url;
       } else {
         toast.error('Failed to parse a checkout redirect session link.');
@@ -104,6 +105,7 @@ const MySubscriptions = () => {
           description: 'Unknown status'
         };
     }
+    
   };
 
   const getProgress = (endDate) => {
