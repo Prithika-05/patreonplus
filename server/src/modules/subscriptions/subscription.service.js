@@ -54,7 +54,7 @@ const getMySubscriptions = async (userId) => {
     where: { subscriberId: userId },
     include: [
       { model: Tier, as: "tier" },
-      { model: require("../users/user.model"), as: "creator" },
+      { model: require("../users/user.model"), as: "creator", attributes: ["id", "name", "username"]  },
     ],
   });
 };
