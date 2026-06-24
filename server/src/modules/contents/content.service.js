@@ -3,7 +3,7 @@ const { Op } = require("sequelize");
 const Subscription = require("../subscriptions/subscription.model");
 const Tier = require("../tiers/tier.model");
 const AppError = require("../../utils/AppError");
-const uploadService = require("../uploads/upload.service"); 
+const uploadService = require("../uploads/upload.service");
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
@@ -33,15 +33,14 @@ const createContent = async (data, creatorId) => {
   const content = await Content.create({
     title: data.title,
     description: data.description,
-    fileKey: data.fileKey, // Stores clean relative path string keys from S3
+    fileKey: data.fileKey,
     tierId: data.tierId,
+    previewUrl: data.previewUrl,
     creatorId,
   });
 
-  const secureUrl = await uploadService.getSecureUrl(content.fileKey);
   return {
     ...content.toJSON(),
-    fileUrl: secureUrl,
   };
 };
 
@@ -69,7 +68,7 @@ const updateContent = async (id, data, creatorId) => {
   }
 
   await content.update(data);
-  
+
   const secureUrl = await uploadService.getSecureUrl(content.fileKey);
   return {
     ...content.toJSON(),
@@ -168,7 +167,7 @@ const getSubscriberFeed = async (userId) => {
   if (subscriptions.length === 0) {
     return [];
   }
-  
+
   const contentPromises = subscriptions.map(async (sub) => {
     const creatorId = sub.creatorId;
     const subscribedLevel = sub.tier.level;

@@ -16,14 +16,7 @@ const uploadFile = async (file) => {
     })
   );
 
-  // 2. Generate a fresh, temporary display link so the frontend can show a thumbnail right away
-  const url = await getSecureUrl(key);
-
-  // 🟢 Fixed: Return an object matching your controller's destructured mapping criteria
-  return {
-    key,
-    url
-  }; 
+  return key; 
 };
 
 const getSecureUrl = async (key) => {
@@ -34,8 +27,10 @@ const getSecureUrl = async (key) => {
     Key: key,
   });
 
-  const temporaryUrl = await getSignedUrl(s3, command, { expiresIn: 900 });
-  return temporaryUrl;
+  const url = await getSignedUrl(s3, command, { expiresIn: 900 });
+  
+  return url;
+
 };
 
 module.exports = {

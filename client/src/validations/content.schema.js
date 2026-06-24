@@ -12,9 +12,13 @@ export const contentSchema = z.object({
     .trim()
     .max(5000, "Description cannot exceed 5000 characters"),
 
-  fileUrl: z
+  previewUrl: z
     .string()
     .url("Please enter a valid URL"),
+
+  fileKey: z
+    .string()
+    .trim(),
 
   tierId: z.coerce
     .string()

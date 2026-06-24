@@ -30,6 +30,11 @@ const Content = sequelize.define(
     fileKey: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+
+    previewUrl: {
+      type: DataTypes.TEXT,
+      allowNull: false,
       validate: {
         notEmpty: true,
         isUrl: true

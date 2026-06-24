@@ -15,7 +15,8 @@ const upload = asyncHandler(async (req, res) => {
     success: true,
     message: "File uploaded successfully",
     data: {
-      key: fileKey 
+      key: fileKey,
+      url: secureUrl,
     }
   });
 });

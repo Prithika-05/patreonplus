@@ -27,7 +27,7 @@ const Contents = () => {
   const [errors, setErrors] = useState({});
   const [isUploading, setIsUploading] = useState(false);
 
-const { data: contentsResponse, isLoading } = useQuery({
+  const { data: contentsResponse, isLoading } = useQuery({
     queryKey: ['contents'],
     queryFn: contentService.getAllContents, // Or your custom API function string
   });
@@ -35,15 +35,15 @@ const { data: contentsResponse, isLoading } = useQuery({
   const contents = Array.isArray(contentsResponse)
     ? contentsResponse
     : (contentsResponse?.data || contentsResponse?.data?.data || []);
-    
-  const { data:  tiersResponse } = useQuery({
+
+  const { data: tiersResponse } = useQuery({
     queryKey: ['tiers'],
     queryFn: tierService.getAllTiers,
   });
 
-  const tiers = Array.isArray(tiersResponse) 
-  ? tiersResponse 
-  : (tiersResponse?.data || tiersResponse?.data?.data || []);
+  const tiers = Array.isArray(tiersResponse)
+    ? tiersResponse
+    : (tiersResponse?.data || tiersResponse?.data?.data || []);
 
 
   const createMutation = useMutation({
@@ -52,7 +52,7 @@ const { data: contentsResponse, isLoading } = useQuery({
       queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content published successfully!');
       setOpen(false);
-      setFormData({ title: '', description: '', fileUrl: '', tierId: '', previewUrl: '' });
+      setFormData({ title: '', description: '', fileKey: '', tierId: '', previewUrl: '' });
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to create content'),
   });
@@ -69,12 +69,11 @@ const { data: contentsResponse, isLoading } = useQuery({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (isUploading || !formData.fileUrl) return;
-
     const validation = contentSchema.safeParse({
       title: formData.title,
       description: formData.description,
-      fileUrl: formData.fileUrl,
+      fileKey: formData.fileKey,
+      previewUrl: formData.previewUrl,
       tierId: formData.tierId
     });
 
@@ -96,7 +95,9 @@ const { data: contentsResponse, isLoading } = useQuery({
       title: formData.title,
       description: formData.description,
       fileKey: formData.fileKey,
+      previewUrl: formData.previewUrl,
       tierId: formData.tierId
+
     });
   };
 
@@ -108,10 +109,8 @@ const { data: contentsResponse, isLoading } = useQuery({
 
   const getFileIcon = (url) => {
     if (!url) return <FileText className="h-6 w-6 text-muted-foreground" />;
-    const cleanUrl = url.split('?')[0]; 
-    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(cleanUrl)) return <ImageIcon className="h-6 w-6 text-blue-500" />;
-    if (/\.(mp4|mov|avi|mkv)$/i.test(cleanUrl)) return <Video className="h-6 w-6 text-red-500" />;
-    return <FileText className="h-6 w-6 text-muted-foreground" />;
+    const cleanUrl = url.split('?')[0];
+    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(cleanUrl)) return <ImageIcon className="h-6 w-6 text-blue-500" />; if (/\.(mp4|mov|avi|mkv)$/i.test(cleanUrl)) return <Video className="h-6 w-6 text-red-500" />; return <FileText className="h-6 w-6 text-muted-foreground" />;
   };
 
   if (isLoading) {
@@ -131,17 +130,17 @@ const { data: contentsResponse, isLoading } = useQuery({
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Content Library</h2>
           <p className="text-muted-foreground mt-1">Manage your exclusive posts, videos, and files.</p>
         </div>
-        
-      <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger aschild="true">
             <button className="inline-flex shrink-0 items-center justify-center rounded-md font-medium text-sm transition-colors bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 h-9 px-4 py-2 group">
-              <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" /> 
+              <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
               Add New Content
             </button>
           </DialogTrigger>
 
 
-          
+
           <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-border/50">
             <div className="bg-gradient-to-r from-primary to-violet-600 p-6 text-primary-foreground">
               <DialogHeader>
@@ -154,7 +153,7 @@ const { data: contentsResponse, isLoading } = useQuery({
                 </DialogDescription>
               </DialogHeader>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-card">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2 col-span-2">
@@ -216,7 +215,7 @@ const { data: contentsResponse, isLoading } = useQuery({
                           toast.loading("Uploading asset securely to AWS S3...", { id: "s3-upload" });
 
                           const uploadResult = await uploadFile(selectedFile);
-                          
+
                           const { key, url } = uploadResult.data;
 
                           setFormData({
@@ -224,7 +223,7 @@ const { data: contentsResponse, isLoading } = useQuery({
                             fileKey: key,
                             previewUrl: url
                           });
-                          
+
                           toast.success("Media uploaded successfully!", { id: "s3-upload" });
                         } catch (uploadError) {
                           console.error("S3 upload failed:", uploadError);
@@ -233,25 +232,14 @@ const { data: contentsResponse, isLoading } = useQuery({
                             fileUrl: uploadError.response?.data?.message || uploadError.message || "Failed to upload file to S3."
                           });
                           toast.error("Upload failed. Please check constraints.", { id: "s3-upload" });
-                        }finally {
+                        } finally {
                           setIsUploading(false);
                         }
                       }}
                       className="cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:opacity-90"
                     />
                   </div>
-                  
-                  {formData.fileUrl && !errors.fileUrl && (
-                    <p className="text-xs text-green-600 font-semibold flex items-center gap-1">
-                      ✓ Ready: File verified & reference tracking attached.
-                    </p>
-                  )}
 
-                  {errors.fileUrl && (
-                    <p className="text-sm text-destructive">
-                      {errors.fileUrl}
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2 col-span-2">
@@ -283,9 +271,9 @@ const { data: contentsResponse, isLoading } = useQuery({
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  // disabled={isUploading || !formData.fileUrl || createMutation.isPending}
+                <Button
+                  type="submit"
+                // disabled={isUploading || !formData.fileUrl || createMutation.isPending}
                 >
                   {isUploading ? 'Uploading File...' : createMutation.isPending ? 'Publishing...' : 'Publish Content'}
                 </Button>
@@ -296,92 +284,92 @@ const { data: contentsResponse, isLoading } = useQuery({
       </div>
 
       {contents && contents.length > 0 ? (
-        <motion.div 
+        <motion.div
           className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ staggerChildren: 0.1 }}
         >
-         <AnimatePresence>
-          {Array.isArray(contents) &&
-            (() => {
-              const flatTiers = Array.isArray(tiers)
-                ? tiers
-                : (tiers?.data || tiers?.data?.data || []);
+          <AnimatePresence>
+            {Array.isArray(contents) &&
+              (() => {
+                const flatTiers = Array.isArray(tiers)
+                  ? tiers
+                  : (tiers?.data || tiers?.data?.data || []);
 
-              return contents.map((content) => {
-                const tier = flatTiers.find((t) => t.id === content.tierId);
+                return contents.map((content) => {
+                  const tier = flatTiers.find((t) => t.id === content.tierId);
 
-                const cleanFilePath = getCleanPath(content.fileUrl);
-                
-                return (
-                  <motion.div
-                    key={content.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    whileHover={{ y: -5 }}
-                    className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
-                  >
-                    <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
-                      <div className="w-full h-full text-muted-foreground/40 transform group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
-                        {/\.(jpg|jpeg|png|webp)$/i.test(cleanFilePath) ? (
-                          <img src={content.fileUrl} className="h-full w-full object-cover" alt="" />
-                        ) : /\.(mp4|webm)$/i.test(cleanFilePath) ? (
-                          <video src={content.fileUrl} controls className="h-full w-full object-contain bg-black" />
-                        ) : (
-                          <div className="flex flex-col items-center gap-2 font-medium text-sm">
-                            {getFileIcon(content.fileUrl)} 
-                            <span>Secure Attachment</span>
-                          </div>
-                        )}
+                  const cleanFilePath = getCleanPath(content.previewUrl);
+
+                  return (
+                    <motion.div
+                      key={content.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      whileHover={{ y: -5 }}
+                      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
+                    >
+                      <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
+                        <div className="w-full h-full text-muted-foreground/40 transform group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
+                          {/\.(jpg|jpeg|png|webp)$/i.test(cleanFilePath) ? (
+                            <img src={content.previewUrl} className="h-full w-full object-cover" alt="" />
+                          ) : /\.(mp4|webm)$/i.test(cleanFilePath) ? (
+                            <video src={content.previewUrl} controls className="h-full w-full object-contain bg-black" />
+                          ) : (
+                            <div className="flex flex-col items-center gap-2 font-medium text-sm">
+                              {getFileIcon(content.previewUrl)}
+                              <span>Secure Attachment</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="absolute top-3 right-3">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-white border border-white/10">
+                            <Lock className="h-3 w-3" />
+                            {tier?.name || "Restricted"}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="absolute top-3 right-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-xs font-medium text-white border border-white/10">
-                          <Lock className="h-3 w-3" />
-                          {tier?.name || "Restricted"}
-                        </span>
+                      <div className="flex flex-col flex-1 p-5">
+                        <div className="mb-3 flex items-start justify-between gap-2">
+                          <h3 className="font-bold text-foreground leading-tight line-clamp-2">
+                            {content.title}
+                          </h3>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
+                          {content.description}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
+                          <a
+                            href={content.previewUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
+                          >
+                            View File <ExternalLink className="h-3 w-3" />
+                          </a>
+
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => deleteMutation.mutate(content.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="flex flex-col flex-1 p-5">
-                      <div className="mb-3 flex items-start justify-between gap-2">
-                        <h3 className="font-bold text-foreground leading-tight line-clamp-2">
-                          {content.title}
-                        </h3>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
-                        {content.description}
-                      </p>
-
-                      <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
-                        <a
-                          href={content.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-medium text-primary hover:underline flex items-center gap-1"
-                        >
-                          View File <ExternalLink className="h-3 w-3" />
-                        </a>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => deleteMutation.mutate(content.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              });
-            })()}
-        </AnimatePresence>
+                    </motion.div>
+                  );
+                });
+              })()}
+          </AnimatePresence>
 
         </motion.div>
       ) : (

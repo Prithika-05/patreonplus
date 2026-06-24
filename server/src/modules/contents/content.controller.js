@@ -3,21 +3,18 @@ const asyncHandler = require("../../utils/asyncHandler");
 const uploadService = require("../uploads/upload.service")
 
 const createContent = asyncHandler(async (req, res) => {
-    const content =
-      await contentService.createContent(
-        req.body,
-        req.user.id
-      );
-    if (content.fileUrl) {
-    content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
-  }
+  const content =
+    await contentService.createContent(
+      req.body,
+      req.user.id
+    );
 
-    return res.status(201).json({
-      success: true,
-      message: "Content created successfully",
-      data: content,
-    });
+  return res.status(201).json({
+    success: true,
+    message: "Content created successfully",
+    data: content,
   });
+});
 
 const updateContent = asyncHandler(async (req, res) => {
   const content = await contentService.updateContent(
@@ -29,7 +26,7 @@ const updateContent = asyncHandler(async (req, res) => {
   if (content && content.fileUrl) {
     content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
   }
-  
+
   return res.status(201).json({
     success: true,
     message: "Content updated successfully",
@@ -40,15 +37,6 @@ const updateContent = asyncHandler(async (req, res) => {
 const getAllContents = asyncHandler(async (req, res) => {
   const contents = await contentService.getAllContents(req.user.id);
 
-  const secureContents = await Promise.all(
-    contents.map(async (item) => {
-      if (item.fileUrl) {
-        item.dataValues.fileUrl = await uploadService.getSecureUrl(item.fileUrl);
-      }
-      return item;
-    })
-  );
-  
   return res.status(200).json({
     success: true,
     data: contents,
@@ -64,7 +52,7 @@ const getContentById = asyncHandler(async (req, res) => {
   if (content && content.fileUrl) {
     content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
   }
-  
+
   return res.status(200).json({
     success: true,
     data: content,
@@ -91,7 +79,7 @@ const getSubscriberFeed = asyncHandler(async (req, res) => {
       return item;
     })
   );
-  
+
   return res.status(200).json({
     success: true,
     data: contents,

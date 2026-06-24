@@ -10,17 +10,23 @@ const createContentSchema = z.object({
   description: z
     .string()
     .trim()
-    .max(5000, "Description cannot exceed 5000 characters")
-    .nullable() 
-    .optional(),
+    .max(5000, "Description cannot exceed 5000 characters"),
+
+  previewUrl: z
+    .string()
+    .url("Please enter a valid URL"),
 
   fileKey: z
     .string()
-    .url("File key is required"),
+    .trim(),
 
-  tierId: z
-    .string({ required_error: "Tier selection is required" })
-    .uuid("Invalid tier selected. Must be a valid UUID"), 
+  tierId: z.coerce
+    .string()
+    .uuid("Please select a valid tier")
+    .refine((val) => val !== "", {
+      message: "Please select a tier",
+    }),
+
 });
 
 const updateContentSchema = createContentSchema.partial();
@@ -28,7 +34,7 @@ const updateContentSchema = createContentSchema.partial();
 const contentIdSchema = z.object({
   id: z
     .string({ required_error: "Content ID parameter is required" })
-    .uuid("Invalid content id format"), 
+    .uuid("Invalid content id format"),
 });
 
 module.exports = {
