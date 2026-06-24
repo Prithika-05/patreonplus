@@ -45,6 +45,9 @@ const Contents = () => {
     ? tiersResponse
     : (tiersResponse?.data || tiersResponse?.data?.data || []);
 
+  const selectedTier = tiers?.find(
+    (tier) => tier.id === formData.tierId
+  );
 
   const createMutation = useMutation({
     mutationFn: contentService.createContent,
@@ -244,21 +247,34 @@ const Contents = () => {
 
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="tier" className="text-sm font-semibold">Access Level</Label>
-                  <Select value={formData.tierId} onValueChange={(val) => setFormData({ ...formData, tierId: val })} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select who can view this" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tiers?.map((tier) => (
-                        <SelectItem key={tier.id} value={tier.id}>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{tier.name}</span>
-                            <span className="text-xs text-muted-foreground">(${tier.price})</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Select
+                  value={formData.tierId}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, tierId: val })
+                  }
+                  required
+                >
+                  <SelectTrigger>
+                    <span className="truncate">
+                      {selectedTier
+                        ? `${selectedTier.name} ($${selectedTier.price})`
+                        : "Select who can view this"}
+                    </span>
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {tiers?.map((tier) => (
+                      <SelectItem key={tier.id} value={tier.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{tier.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            (${tier.price})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                   {errors.tierId && (
                     <p className="text-sm text-destructive mt-1">
                       {errors.tierId}
