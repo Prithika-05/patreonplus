@@ -24,7 +24,6 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
-// Added the refresh controller function here
 const refresh = asyncHandler(async (req, res) => {
   const { refreshToken } = req.body;
 

@@ -173,9 +173,6 @@ const getTopContent = async (
   
 
 
-/**
- * Content-specific engagement
- */
 const getContentEngagement = async (contentId) => {
   const [totalViews, uniqueViewers, completedViews, averageWatchTime] = await Promise.all([
     ContentView.count({
@@ -205,15 +202,6 @@ const getContentEngagement = async (contentId) => {
   };
 };
 
-console.log("SERVICE FILE LOADED");
-
-console.log({
-  recordView: typeof recordView,
-  getContentViews: typeof getContentViews,
-  getCreatorEngagement: typeof getCreatorEngagement,
-  getTopContent: typeof getTopContent,
-  getContentEngagement: typeof getContentEngagement,
-});
 
 module.exports = {
   recordView,

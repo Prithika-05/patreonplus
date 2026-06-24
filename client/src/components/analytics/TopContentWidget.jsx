@@ -1,52 +1,211 @@
-import React from "react";
+import React, { useMemo } from "react";
+import {
+  Eye,
+  Trophy,
+  FileText,
+  Calendar,
+} from "lucide-react";
 
-const TopContentWidget = ({ data = [], isLoading = false }) => {
+const TopContentWidget = ({
+  data = [],
+  isLoading = false,
+}) => {
+  const analytics = useMemo(() => {
+    if (!data.length) {
+      return {
+        totalViews: 0,
+        topContent: null,
+      };
+    }
+
+    const totalViews = data.reduce(
+      (sum, item) =>
+        sum + Number(item.views || 0),
+      0
+    );
+
+    return {
+      totalViews,
+      topContent: data[0],
+    };
+  }, [data]);
+
+  const formatNumber = (value) =>
+    new Intl.NumberFormat("en-US").format(
+      Number(value || 0)
+    );
+
   if (isLoading) {
     return (
-      <div className="p-6 border border-gray-100 rounded-xl bg-white shadow-xs animate-pulse h-64 flex items-center justify-center">
-        <p className="text-xs text-gray-400 font-medium">Loading your top performing content...</p>
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="animate-pulse space-y-4">
+          <div className="h-5 w-40 rounded bg-muted" />
+          <div className="h-3 w-56 rounded bg-muted" />
+
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="space-y-2"
+            >
+              <div className="h-4 w-full rounded bg-muted" />
+              <div className="h-2 w-full rounded bg-muted" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="p-6 border border-gray-100 rounded-xl bg-white shadow-xs h-64 flex items-center justify-center">
-        <p className="text-sm text-gray-400 font-medium">No published content view data available yet.</p>
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="flex h-64 flex-col items-center justify-center text-center">
+          <FileText className="h-10 w-10 text-muted-foreground opacity-40" />
+
+          <h3 className="mt-4 font-medium">
+            No content analytics yet
+          </h3>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Publish content and start receiving
+            views to see performance metrics.
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Determine the highest view count to calculate relative widths for visual progress bars
-  const maxViews = data.length > 0 ? data[0].views : 1;
+  const maxViews =
+    Number(data[0]?.views || 1);
 
   return (
-    <div className="p-6 border border-gray-100 rounded-xl bg-white shadow-xs">
-      <div className="mb-5">
-        <h3 className="text-base font-semibold text-gray-900">Top Content</h3>
-        <p className="text-xs text-gray-500 mt-0.5">Your publications sorted by historical popularity</p>
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+            Top Content
+          </h3>
+
+          <p className="text-sm text-muted-foreground mt-1">
+            Best-performing content by views
+          </p>
+        </div>
+
+        <div className="text-right">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Total Views
+          </p>
+
+          <p className="text-xl font-bold">
+            {formatNumber(
+              analytics.totalViews
+            )}
+          </p>
+        </div>
       </div>
 
+      {analytics.topContent && (
+        <div className="mb-5 rounded-lg border bg-muted/30 p-4">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Trophy className="h-4 w-4 text-yellow-500" />
+            Top Performer
+          </div>
+
+          <h4 className="mt-2 font-semibold">
+            {analytics.topContent.title}
+          </h4>
+
+          <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Eye className="h-3 w-3" />
+              {formatNumber(
+                analytics.topContent.views
+              )}{" "}
+              views
+            </span>
+
+            {analytics.topContent.tierName && (
+              <span>
+                Tier:{" "}
+                {
+                  analytics.topContent
+                    .tierName
+                }
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
-        {data.map((item, idx) => {
-          const relativePercentage = Math.min(100, Math.max(5, (item.views / maxViews) * 100));
-          
+        {data.map((item, index) => {
+          const relativePercentage =
+            Math.min(
+              100,
+              Math.max(
+                5,
+                (Number(item.views || 0) /
+                  maxViews) *
+                  100
+              )
+            );
+
           return (
-            <div key={idx} className="space-y-1.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-800 truncate max-w-[75%]">
-                  {item.title}
-                </span>
-                <span className="font-semibold text-gray-900">
-                  {item.views.toLocaleString()} views
-                </span>
+            <div
+              key={item.id || index}
+              className="group rounded-lg border p-3 transition-all hover:bg-muted/20"
+            >
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    #{index + 1}
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium leading-tight">
+                      {item.title}
+                    </h4>
+
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      {item.tierName && (
+                        <span>
+                          Tier:{" "}
+                          {item.tierName}
+                        </span>
+                      )}
+
+                      {item.createdAt && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(
+                            item.createdAt
+                          ).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="font-semibold">
+                    {formatNumber(
+                      item.views
+                    )}
+                  </div>
+
+                  <div className="text-xs text-muted-foreground">
+                    views
+                  </div>
+                </div>
               </div>
-              
-              {/* Visual Performance Bar indicator */}
-              <div className="w-full bg-gray-50 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-sky-500 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${relativePercentage}%` }}
+
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  style={{
+                    width: `${relativePercentage}%`,
+                  }}
                 />
               </div>
             </div>

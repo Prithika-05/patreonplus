@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { analyticsService } from "@/services/analytics.service"; //  Correct
-
+import { analyticsService } from "@/services/analytics.service";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,7 @@ import { motion } from "framer-motion";
 import RevenueChart from "@/components/analytics/RevenueChart";
 import TierPerformanceChart from "@/components/analytics/TierPerformanceChart";
 import ChurnCard from "@/components/analytics/ChurnCard";
+import TopContentWidget from "@/components/analytics/TopContentWidget";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -70,19 +70,26 @@ const DashboardHome = () => {
     queryFn: analyticsService.getTierPerformance,
   });
 
+  const topContentQuery = useQuery({
+    queryKey: ["analytics-top-content"],
+    queryFn: () => analyticsService.getTopContent(10),
+  });
+
   const isLoading =
     overviewQuery.isLoading ||
     recentSubscribersQuery.isLoading ||
     churnQuery.isLoading ||
     revenueHistoryQuery.isLoading ||
-    tierPerformanceQuery.isLoading;
+    tierPerformanceQuery.isLoading ||
+    topContentQuery.isLoading;
 
   const isError =
     overviewQuery.isError ||
     recentSubscribersQuery.isError ||
     churnQuery.isError ||
     revenueHistoryQuery.isError ||
-    tierPerformanceQuery.isError;
+    tierPerformanceQuery.isError ||
+    topContentQuery.isError;
 
   if (isLoading) {
     return (
@@ -110,6 +117,7 @@ const DashboardHome = () => {
   const churnData = churnQuery.data?.data || {};
   const revenueHistory = revenueHistoryQuery.data?.data || [];
   const tierPerformance = tierPerformanceQuery.data?.data || [];
+  const topContent = topContentQuery.data?.data || [];
 
   const totalSubscribers = overview.totalSubscribers || 0;
   const totalContent = overview.totalContent || 0;
@@ -246,6 +254,11 @@ const DashboardHome = () => {
         />
       </div>
 
+      <TopContentWidget
+        data={topContent}
+        isLoading={topContentQuery.isLoading}
+      />
+
       <ChurnCard
         data={churnData}
         isLoading={churnQuery.isLoading}
@@ -336,3 +349,4 @@ const DashboardHome = () => {
 };
 
 export default DashboardHome;
+
