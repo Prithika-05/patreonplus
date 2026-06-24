@@ -71,18 +71,9 @@ const deleteContent = asyncHandler(async (req, res) => {
 const getSubscriberFeed = asyncHandler(async (req, res) => {
   const contents = await contentService.getSubscriberFeed(req.user.id);
 
-  const secureFeed = await Promise.all(
-    contents.map(async (item) => {
-      if (item.fileUrl) {
-        item.dataValues.fileUrl = await uploadService.getSecureUrl(item.fileUrl);
-      }
-      return item;
-    })
-  );
-
   return res.status(200).json({
     success: true,
-    data: contents,
+    contents,
   });
 });
 

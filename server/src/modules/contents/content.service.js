@@ -4,6 +4,7 @@ const Subscription = require("../subscriptions/subscription.model");
 const Tier = require("../tiers/tier.model");
 const AppError = require("../../utils/AppError");
 const uploadService = require("../uploads/upload.service");
+const User = require("../users/user.model");
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
@@ -164,7 +165,7 @@ const getSubscriberFeed = async (userId) => {
     include: [{ model: Tier, as: "tier" }],
   });
 
-  if (subscriptions.length === 0) {
+  if (!subscriptions.length) {
     return [];
   }
 
@@ -182,33 +183,27 @@ const getSubscriberFeed = async (userId) => {
 
     const tierIds = accessibleTiers.map((t) => t.id);
 
-    return await Content.findAll({
+    return Content.findAll({
       where: {
         creatorId,
-        tierId: { [Op.in]: tierIds },
+        tierId: {
+          [Op.in]: tierIds,
+        },
       },
       include: [
         { model: Tier, as: "tier" },
-        { model: require("../users/user.model"), as: "creator" },
+        { model: User, as: "creator" },
       ],
     });
   });
 
   const results = await Promise.all(contentPromises);
-  let feed = results.flat();
 
-  feed = await Promise.all(
-    feed.map(async (item) => {
-      const secureUrl = await uploadService.getSecureUrl(item.fileKey);
-      return {
-        ...item.toJSON(),
-        fileUrl: secureUrl,
-      };
-    })
-  );
+  const feed = results
+    .flat()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  feed.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  return feed;
+  return feed.map((item) => item.toJSON());
 };
 
 module.exports = {
