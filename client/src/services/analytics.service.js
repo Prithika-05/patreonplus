@@ -1,12 +1,36 @@
 import api from "@/lib/axios";
 
 export const analyticsService = {
-  /**
-   * Fetches real-time overview metrics from the backend API
-   * @returns {Promise<{success: boolean, data: {totalSubscribers: number, totalContent: number, monthlyRevenue: number}}>}
-   */
   getOverview: async () => {
-    const response = await api.get("/analytics/overview");
-    return response.data; 
+    const res = await api.get("/analytics/overview");
+    return res.data;
+  },
+
+  getRevenueHistory: async () => {
+    const res = await api.get(
+      "/analytics/revenue-history"
+    );
+    return res.data;
+  },
+
+  getTierPerformance: async () => {
+    const res = await api.get(
+      "/analytics/tier-performance"
+    );
+    return res.data;
+  },
+
+  getChurnRate: async () => {
+    const res = await api.get(
+      "/analytics/churn"
+    );
+    return res.data;
+  },
+
+  getRecentSubscribers: async () => {
+    const res = await api.get(
+      "/analytics/recent-subscribers"
+    );
+    return res.data;
   },
 };

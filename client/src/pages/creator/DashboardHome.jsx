@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { analyticsService } from "../../services/analytics.service";
+import { analyticsService } from "@/services/analytics.service"; //  Correct
+
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 import {
   Table,
   TableBody,
@@ -9,16 +13,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import {
   DollarSign,
   Users,
-  Layers,
   FileText,
   TrendingUp,
   ArrowUpRight,
+  UserMinus,
 } from "lucide-react";
+
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+
+import RevenueChart from "@/components/analytics/RevenueChart";
+import TierPerformanceChart from "@/components/analytics/TierPerformanceChart";
+import ChurnCard from "@/components/analytics/ChurnCard";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -35,28 +44,60 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
-
 const DashboardHome = () => {
-  const { data, isLoading, isError, error } = useQuery({
-  queryKey:["analytics"],
-  queryFn:
-    analyticsService.getOverview,
-});
+  const overviewQuery = useQuery({
+    queryKey: ["analytics-overview"],
+    queryFn: analyticsService.getOverview,
+  });
+
+  const recentSubscribersQuery = useQuery({
+    queryKey: ["analytics-recent-subscribers"],
+    queryFn: analyticsService.getRecentSubscribers,
+  });
+
+  const churnQuery = useQuery({
+    queryKey: ["analytics-churn"],
+    queryFn: analyticsService.getChurnRate,
+  });
+
+  const revenueHistoryQuery = useQuery({
+    queryKey: ["analytics-revenue-history"],
+    queryFn: analyticsService.getRevenueHistory,
+  });
+
+  const tierPerformanceQuery = useQuery({
+    queryKey: ["analytics-tier-performance"],
+    queryFn: analyticsService.getTierPerformance,
+  });
+
+  const isLoading =
+    overviewQuery.isLoading ||
+    recentSubscribersQuery.isLoading ||
+    churnQuery.isLoading ||
+    revenueHistoryQuery.isLoading ||
+    tierPerformanceQuery.isLoading;
+
+  const isError =
+    overviewQuery.isError ||
+    recentSubscribersQuery.isError ||
+    churnQuery.isError ||
+    revenueHistoryQuery.isError ||
+    tierPerformanceQuery.isError;
 
   if (isLoading) {
     return (
       <div className="flex h-[60vh] w-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <p className="text-sm text-muted-foreground animate-pulse">
-            Loading your studio...
+            Loading your analytics...
           </p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="flex h-[60vh] w-full items-center justify-center text-destructive">
         Failed to load analytics. Please try again later.
@@ -64,51 +105,64 @@ const DashboardHome = () => {
     );
   }
 
-  const overview = data?.data || {}; 
+  const overview = overviewQuery.data?.data || {};
+  const recentSubscribers = recentSubscribersQuery.data?.data || [];
+  const churnData = churnQuery.data?.data || {};
+  const revenueHistory = revenueHistoryQuery.data?.data || [];
+  const tierPerformance = tierPerformanceQuery.data?.data || [];
 
   const totalSubscribers = overview.totalSubscribers || 0;
   const totalContent = overview.totalContent || 0;
   const monthlyRevenue = overview.monthlyRevenue || 0;
-  const arpu = totalSubscribers > 0 ? (monthlyRevenue / totalSubscribers) : 0;
+
+  const arpu =
+    totalSubscribers > 0
+      ? monthlyRevenue / totalSubscribers
+      : 0;
 
   const stats = [
     {
-      title: "Total Revenue",
-      value: `$${Number(monthlyRevenue).toFixed(2)}`, // Safe cast conversion
+      title: "Monthly Revenue",
+      value: `$${Number(monthlyRevenue).toFixed(2)}`,
       icon: DollarSign,
-      description: "Live calculated earnings",
-      trend: "up",
+      description: "Current monthly recurring revenue",
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
     },
     {
-      title: "Active Subscribers",
+      title: "Subscribers",
       value: totalSubscribers,
       icon: Users,
-      description: "Active platform supporters",
-      trend: "up",
+      description: "Active paying members",
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
     {
-      title: "Total Content",
+      title: "Published Content",
       value: totalContent,
       icon: FileText,
-      description: "Posts & videos published",
-      trend: "up",
+      description: "Total creator posts",
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
     {
-      title: "Avg. Revenue Per Subscriber",
+      title: "ARPU",
       value: `$${Number(arpu).toFixed(2)}`,
       icon: TrendingUp,
-      description: "Average value per member",
-      trend: "up",
+      description: "Average revenue per subscriber",
       color: "text-violet-500",
       bg: "bg-violet-500/10",
     },
-
+    {
+      title: "Churn Rate",
+      value: `${Number(
+        churnData.churnRate || 0
+      ).toFixed(2)}%`,
+      icon: UserMinus,
+      description: "Subscriber loss rate",
+      color: "text-red-500",
+      bg: "bg-red-500/10",
+    },
   ];
 
   return (
@@ -119,25 +173,21 @@ const DashboardHome = () => {
         className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          <h2 className="text-3xl font-bold tracking-tight">
             Dashboard
           </h2>
+
           <p className="text-muted-foreground mt-1">
-            Welcome back, here's what's happening today.
+            Welcome back. Here's your creator business overview.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400 border border-green-500/20">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            Live Data
-          </div>
-          <span className="text-sm text-muted-foreground flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" />
-            Updated just now
+
+        <div className="flex items-center gap-2 rounded-full bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600 border border-green-500/20">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
+          Live Analytics
         </div>
       </motion.div>
 
@@ -145,31 +195,36 @@ const DashboardHome = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-5"
       >
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
+
           return (
-            <motion.div key={stat.title} variants={itemVariants}>
-              <Card className="overflow-hidden border-border/60 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <motion.div
+              key={stat.title}
+              variants={itemVariants}
+            >
+              <Card className="hover:shadow-lg transition-all">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.title}
                   </CardTitle>
+
                   <div
-                    className={`rounded-full p-2 ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}
+                    className={`rounded-full p-2 ${stat.bg} ${stat.color}`}
                   >
                     <Icon className="h-4 w-4" />
                   </div>
                 </CardHeader>
+
                 <CardContent>
-                  <div className="text-2xl font-bold text-foreground">
+                  <div className="text-2xl font-bold">
                     {stat.value}
                   </div>
+
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                    {stat.trend === "up" && (
-                      <ArrowUpRight className="h-3 w-3 text-green-500" />
-                    )}
+                    <ArrowUpRight className="h-3 w-3 text-green-500" />
                     {stat.description}
                   </p>
                 </CardContent>
@@ -179,161 +234,103 @@ const DashboardHome = () => {
         })}
       </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-12">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="col-span-12 lg:col-span-8"
-        >
-          <Card className="border-border/60 shadow-sm h-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                Recent Subscriptions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border border-border/50 overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow>
-                      <TableHead className="font-semibold">
-                        Subscriber
-                      </TableHead>
-                      <TableHead className="font-semibold">Action</TableHead>
-                      <TableHead className="text-right font-semibold">
-                        Date
-                      </TableHead>
-                      <TableHead className="text-right font-semibold">
-                        Status
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {overview?.recentActivity?.length > 0 ? (
-                      overview.recentActivity.map((activity) => (
-                        <TableRow
-                          key={activity.id}
-                          className="hover:bg-muted/40 transition-colors"
-                        >
-                          <TableCell className="font-medium text-foreground">
-                            {activity.user}
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                                activity.action.includes("Subscribed")
-                                  ? "bg-green-500/10 text-green-600"
-                                  : "bg-blue-500/10 text-blue-600"
-                              }`}
-                            >
-                              {activity.action}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right text-muted-foreground">
-                            {new Date(activity.date).toLocaleDateString(
-                              undefined,
-                              { month: "short", day: "numeric" },
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className="h-2 w-2 rounded-full bg-green-500 inline-block"></span>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="h-24 text-center text-muted-foreground"
-                        >
-                          No recent activity found.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RevenueChart
+          data={revenueHistory}
+          isLoading={revenueHistoryQuery.isLoading}
+        />
 
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className="col-span-12 lg:col-span-4 space-y-6"
-        >
-          <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-background shadow-md">
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Boost your creator journey
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/40">
-                <div className="absolute right-0 top-0 h-20 w-20 -translate-y-4 translate-x-4 rounded-full bg-primary/10 blur-xl transition-all group-hover:bg-primary/20" />
-
-                <div className="relative z-10 flex flex-col gap-2">
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Create New Tier
-                  </h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Add a new membership level to unlock exclusive revenue
-                    streams.
-                  </p>
-
-                  <Button
-                    asChild
-                    size="sm"
-                    className="mt-auto w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-                  >
-                    <a href="/creator/tiers">Create Tier</a>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/40">
-                <div className="absolute right-0 top-0 h-20 w-20 -translate-y-4 translate-x-4 rounded-full bg-purple-500/10 blur-xl transition-all group-hover:bg-purple-500/20" />
-
-                <div className="relative z-10 flex flex-col gap-2">
-                  <h4 className="text-sm font-semibold text-foreground">
-                    Post New Content
-                  </h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Engage your fans with fresh exclusive posts or videos.
-                  </p>
-
-                  <Button
-                    asChild
-                    size="sm"
-                    className="mt-auto w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-                  >
-                    <a href="/creator/contents">Upload Content</a>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-muted/30 border-dashed">
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className="mt-1 rounded-full bg-yellow-500/20 p-1">
-                <TrendingUp className="h-3 w-3 text-yellow-600" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-foreground">Pro Tip</h4>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Creators who post 3x a week see 40% more retention. Keep it
-                  consistent!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <TierPerformanceChart
+          data={tierPerformance}
+          isLoading={tierPerformanceQuery.isLoading}
+        />
       </div>
+
+      <ChurnCard
+        data={churnData}
+        isLoading={churnQuery.isLoading}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Recent Subscribers
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Username</TableHead>
+                <TableHead>Tier</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {recentSubscribers.length > 0 ? (
+                recentSubscribers.map((subscriber) => (
+                  <TableRow key={subscriber.id}>
+                    <TableCell className="font-medium">
+                      {subscriber.name}
+                    </TableCell>
+
+                    <TableCell>
+                      @{subscriber.username}
+                    </TableCell>
+
+                    <TableCell>
+                      {subscriber.tier}
+                    </TableCell>
+
+                    <TableCell>
+                      {new Date(
+                        subscriber.subscribedAt
+                      ).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-muted-foreground"
+                  >
+                    No subscribers found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          <Button asChild>
+            <a href="/creator/tiers">
+              Create Tier
+            </a>
+          </Button>
+
+          <Button
+            asChild
+            variant="outline"
+          >
+            <a href="/creator/contents">
+              Upload Content
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

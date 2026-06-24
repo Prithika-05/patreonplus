@@ -1,41 +1,75 @@
 const { Op, fn, col } = require("sequelize");
+
 const Tier = require("../tiers/tier.model");
 const Content = require("../contents/content.model");
 const Subscription = require("../subscriptions/subscription.model");
+const User = require("../users/user.model");
 
 /**
- * Fetches overview metrics, revenue breakdown, AND audience churn for the creator dashboard
- * @param {string|number} creatorId 
+ * Dashboard overview
  */
 const getOverview = async (creatorId) => {
   const [
-    totalSubscribers, 
-    cancelledSubscribers, 
-    totalContent, 
-    tiers, 
-    tierCounts
+    totalSubscribers,
+    cancelledSubscribers,
+    totalContent,
+    tiers,
+    tierCounts,
   ] = await Promise.all([
-    Subscription.count({ where: { creatorId, status: "active" } }),
-    Subscription.count({ where: { creatorId, status: "cancelled" } }), // Added for churn calculation
-    Content.count({ where: { creatorId } }),
-    Tier.findAll({ where: { creatorId } }),
+    Subscription.count({
+      where: {
+        creatorId,
+        status: "active",
+      },
+    }),
+
+    Subscription.count({
+      where: {
+        creatorId,
+        status: "cancelled",
+      },
+    }),
+
+    Content.count({
+      where: {
+        creatorId,
+      },
+    }),
+
+    Tier.findAll({
+      where: {
+        creatorId,
+      },
+    }),
+
     Subscription.findAll({
-      where: { creatorId, status: "active" },
-      attributes: ["tierId", [fn("COUNT", col("id")), "count"]],
+      where: {
+        creatorId,
+        status: "active",
+      },
+      attributes: [
+        "tierId",
+        [fn("COUNT", col("id")), "count"],
+      ],
       group: ["tierId"],
       raw: true,
     }),
   ]);
 
   const countMap = tierCounts.reduce((acc, curr) => {
-    acc[curr.tierId] = parseInt(curr.count, 10);
+    acc[curr.tierId] = Number(curr.count);
     return acc;
   }, {});
 
   let monthlyRevenue = 0;
+
   const revenueByTier = tiers.map((tier) => {
-    const subscriberCount = countMap[tier.id] || 0;
-    const revenue = subscriberCount * tier.price;
+    const subscriberCount =
+      countMap[tier.id] || 0;
+
+    const revenue =
+      subscriberCount * tier.price;
+
     monthlyRevenue += revenue;
 
     return {
@@ -46,187 +80,372 @@ const getOverview = async (creatorId) => {
     };
   });
 
-  let churnRate = 0;
-  if (totalSubscribers > 0) {
-    churnRate = parseFloat(((cancelledSubscribers / totalSubscribers) * 100).toFixed(2));
-  }
+  const churnRate =
+    totalSubscribers > 0
+      ? Number(
+          (
+            (cancelledSubscribers /
+              totalSubscribers) *
+            100
+          ).toFixed(2)
+        )
+      : 0;
 
   return {
     totalSubscribers,
     totalContent,
     monthlyRevenue,
+
     revenueByTier,
+
     churnSummary: {
-      activeSubscribers: totalSubscribers,
+      activeSubscribers:
+        totalSubscribers,
       cancelledSubscribers,
       churnRate,
     },
   };
 };
 
-
-
 /**
- * Fetches the 10 most recent active subscribers with formatted details
- * @param {string|number} creatorId 
+ * Recent subscribers
  */
-const getRecentSubscribers = async (creatorId) => {
-  const recentSubs = await Subscription.findAll({
-    where: {
-      creatorId,
-      status: "active",
-    },
-    include: [
-      {
-        model: User,
-        as: "subscriber",
-        attributes: ["username"], 
+const getRecentSubscribers = async (
+  creatorId
+) => {
+  const subscriptions =
+    await Subscription.findAll({
+      where: {
+        creatorId,
+        status: "active",
       },
-      {
-        model: Tier,
-        as: "tier",
-        attributes: ["name"],
-      },
-    ],
-    order: [["createdAt", "DESC"]],
-    limit: 10,
-  });
 
-  return recentSubs.map((sub) => ({
-    username: sub.subscriber?.username || "Unknown",
-    tier: sub.tier?.name || "Custom/Deleted Tier",
-    subscribedAt: sub.createdAt.toISOString().split("T")[0], // Formats to YYYY-MM-DD
-  }));
+      include: [
+        {
+          model: User,
+          as: "subscriber",
+          attributes: [
+            "id",
+            "username",
+            "name",
+          ],
+        },
+        {
+          model: Tier,
+          as: "tier",
+          attributes: [
+            "id",
+            "name",
+          ],
+        },
+      ],
+
+      order: [
+        ["createdAt", "DESC"],
+      ],
+
+      limit: 10,
+    });
+
+  return subscriptions.map(
+    (subscription) => ({
+      id: subscription.id,
+
+      username:
+        subscription.subscriber
+          ?.username ||
+        "Unknown User",
+
+      name:
+        subscription.subscriber
+          ?.name ||
+        "Unknown User",
+
+      tier:
+        subscription.tier?.name ||
+        "Unknown Tier",
+
+      subscribedAt:
+        subscription.createdAt,
+    })
+  );
 };
 
 /**
- * Fetches subscriber growth trends over the last 6 months
- * @param {string|number} creatorId 
+ * Subscriber growth
+ * Last 6 months
  */
-const getSubscriberGrowth = async (creatorId) => {
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-  sixMonthsAgo.setDate(1); // Start from the beginning of that month
+const getSubscriberGrowth = async (
+  creatorId
+) => {
+  const sixMonthsAgo =
+    new Date();
 
-  const subscriptions = await Subscription.findAll({
-    where: {
-      creatorId,
-      createdAt: { [Op.gte]: somePastDate },
-    },
-    attributes: ["status", "createdAt"],
-    order: [["createdAt", "ASC"]],
-  });
+  sixMonthsAgo.setMonth(
+    sixMonthsAgo.getMonth() - 5
+  );
 
-  let runningTotal = await Subscription.count({
-    where: {
-      creatorId,
-      status: "active",
-      createdAt: { [Op.lt]: sixMonthsAgo },
-    },
-  });
+  sixMonthsAgo.setDate(1);
 
-  const monthsArr = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const subscriptions =
+    await Subscription.findAll({
+      where: {
+        creatorId,
+        createdAt: {
+          [Op.gte]:
+            sixMonthsAgo,
+        },
+      },
+
+      attributes: [
+        "status",
+        "createdAt",
+      ],
+
+      order: [
+        ["createdAt", "ASC"],
+      ],
+    });
+
+  const monthLabels = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
   const chartData = [];
-  
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
+
+  for (
+    let i = 5;
+    i >= 0;
+    i--
+  ) {
+    const date =
+      new Date();
+
+    date.setMonth(
+      date.getMonth() - i
+    );
+
     chartData.push({
-      year: d.getFullYear(),
-      monthIndex: d.getMonth(),
-      month: monthsArr[d.getMonth()],
+      year:
+        date.getFullYear(),
+      monthIndex:
+        date.getMonth(),
+      month:
+        monthLabels[
+          date.getMonth()
+        ],
       subscribers: 0,
     });
   }
 
-  return chartData.map((bucket) => {
-    const monthChanges = subscriptions.filter((sub) => {
-      const subDate = new Date(sub.createdAt);
-      return subDate.getMonth() === bucket.monthIndex && subDate.getFullYear() === bucket.year;
-    });
+  for (const bucket of chartData) {
+    bucket.subscribers =
+      subscriptions.filter(
+        (subscription) => {
+          const date =
+            new Date(
+              subscription.createdAt
+            );
 
-    monthChanges.forEach((sub) => {
-      if (sub.status === "active") runningTotal += 1;
-      if (sub.status === "cancelled") runningTotal -= 1; 
-    });
-
-    return {
-      month: bucket.month,
-      subscribers: Math.max(0, runningTotal), 
-    };
-  });
-};
-/**
- * Fetches monthly revenue history over the last 6 months
- * @param {string|number} creatorId 
- */
-const getRevenueHistory = async (creatorId) => {
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-  sixMonthsAgo.setDate(1); // Set to start of the oldest month
-
-  const activeSubscriptions = await Subscription.findAll({
-    where: {
-      creatorId,
-      status: "active",
-      createdAt: { [Op.gte]: sixMonthsAgo },
-    },
-    include: [
-      {
-        model: Tier,
-        as: "tier",
-        attributes: ["price"],
-      },
-    ],
-  });
-
-  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const revenueChart = [];
-
-  for (let i = 5; i >= 0; i--) {
-    const targetDate = new Date();
-    targetDate.setMonth(targetDate.getMonth() - i);
-    
-    revenueChart.push({
-      year: targetDate.getFullYear(),
-      monthIndex: targetDate.getMonth(),
-      month: shortMonths[targetDate.getMonth()],
-      revenue: 0,
-    });
+          return (
+            date.getMonth() ===
+              bucket.monthIndex &&
+            date.getFullYear() ===
+              bucket.year &&
+            subscription.status ===
+              "active"
+          );
+        }
+      ).length;
   }
 
-  revenueChart.forEach((bucket) => {
-    const monthlySubs = activeSubscriptions.filter((sub) => {
-      const subDate = new Date(sub.createdAt);
-      return subDate.getMonth() === bucket.monthIndex && subDate.getFullYear() === bucket.year;
-    });
-
-    bucket.revenue = monthlySubs.reduce((sum, sub) => {
-      return sum + (sub.tier?.price || 0);
-    }, 0);
-  });
-
-  return revenueChart.map((bucket) => ({
-    month: bucket.month,
-    revenue: bucket.revenue,
-  }));
+  return chartData.map(
+    ({
+      month,
+      subscribers,
+    }) => ({
+      month,
+      subscribers,
+    })
+  );
 };
 
-const getChurnRate = async (creatorId) => {
-  const [activeSubscribers, cancelledSubscribers] = await Promise.all([
+/**
+ * Revenue history
+ * Last 6 months
+ */
+const getRevenueHistory =
+  async (creatorId) => {
+    const sixMonthsAgo =
+      new Date();
+
+    sixMonthsAgo.setMonth(
+      sixMonthsAgo.getMonth() - 5
+    );
+
+    sixMonthsAgo.setDate(1);
+
+    const subscriptions =
+      await Subscription.findAll({
+        where: {
+          creatorId,
+          status: "active",
+          createdAt: {
+            [Op.gte]:
+              sixMonthsAgo,
+          },
+        },
+
+        include: [
+          {
+            model: Tier,
+            as: "tier",
+            attributes: [
+              "price",
+            ],
+          },
+        ],
+      });
+
+    const monthLabels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const chartData = [];
+
+    for (
+      let i = 5;
+      i >= 0;
+      i--
+    ) {
+      const date =
+        new Date();
+
+      date.setMonth(
+        date.getMonth() - i
+      );
+
+      chartData.push({
+        year:
+          date.getFullYear(),
+        monthIndex:
+          date.getMonth(),
+        month:
+          monthLabels[
+            date.getMonth()
+          ],
+        revenue: 0,
+      });
+    }
+
+    chartData.forEach(
+      (bucket) => {
+        const revenue =
+          subscriptions
+            .filter(
+              (
+                subscription
+              ) => {
+                const date =
+                  new Date(
+                    subscription.createdAt
+                  );
+
+                return (
+                  date.getMonth() ===
+                    bucket.monthIndex &&
+                  date.getFullYear() ===
+                    bucket.year
+                );
+              }
+            )
+            .reduce(
+              (
+                total,
+                subscription
+              ) =>
+                total +
+                Number(
+                  subscription
+                    .tier
+                    ?.price || 0
+                ),
+              0
+            );
+
+        bucket.revenue =
+          revenue;
+      }
+    );
+
+    return chartData.map(
+      ({
+        month,
+        revenue,
+      }) => ({
+        month,
+        revenue,
+      })
+    );
+  };
+
+/**
+ * Churn analytics
+ */
+const getChurnRate = async (
+  creatorId
+) => {
+  const [
+    activeSubscribers,
+    cancelledSubscribers,
+  ] = await Promise.all([
     Subscription.count({
-      where: { creatorId, status: "active" },
+      where: {
+        creatorId,
+        status: "active",
+      },
     }),
+
     Subscription.count({
-      where: { creatorId, status: "cancelled" }, // Ensure status matches your database schema
+      where: {
+        creatorId,
+        status: "cancelled",
+      },
     }),
   ]);
 
-  let churnRate = 0;
-  if (activeSubscribers > 0) {
-    const calculatedRate = (cancelledSubscribers / activeSubscribers) * 100;
-    churnRate = parseFloat(calculatedRate.toFixed(2)); // Truncate to clean double-decimal float
-  }
+  const churnRate =
+    activeSubscribers > 0
+      ? Number(
+          (
+            (cancelledSubscribers /
+              activeSubscribers) *
+            100
+          ).toFixed(2)
+        )
+      : 0;
 
   return {
     activeSubscribers,
@@ -236,37 +455,89 @@ const getChurnRate = async (creatorId) => {
 };
 
 /**
- * Fetches breakdown of subscriber counts and revenue performance by tier
- * @param {string|number} creatorId 
+ * Tier performance
  */
-const getTierPerformance = async (creatorId) => {
-  // 1. Fetch all tiers owned by the creator and active subscription counts in parallel
-  const [tiers, tierCounts] = await Promise.all([
-    Tier.findAll({ where: { creatorId } }),
-    Subscription.findAll({
-      where: { creatorId, status: "active" },
-      attributes: ["tierId", [fn("COUNT", col("id")), "count"]],
-      group: ["tierId"],
-      raw: true,
-    }),
-  ]);
+const getTierPerformance =
+  async (creatorId) => {
+    const [
+      tiers,
+      tierCounts,
+    ] =
+      await Promise.all([
+        Tier.findAll({
+          where: {
+            creatorId,
+          },
+        }),
 
-  const countMap = tierCounts.reduce((acc, curr) => {
-    acc[curr.tierId] = parseInt(curr.count, 10);
-    return acc;
-  }, {});
+        Subscription.findAll({
+          where: {
+            creatorId,
+            status: "active",
+          },
 
-  return tiers
-    .map((tier) => {
-      const subscribers = countMap[tier.id] || 0;
-      return {
-        tierName: tier.name,
-        subscribers,
-        revenue: subscribers * tier.price,
-      };
-    })
-    .sort((a, b) => b.revenue - a.revenue); 
-};
+          attributes: [
+            "tierId",
+            [
+              fn(
+                "COUNT",
+                col("id")
+              ),
+              "count",
+            ],
+          ],
+
+          group: [
+            "tierId",
+          ],
+
+          raw: true,
+        }),
+      ]);
+
+    const countMap =
+      tierCounts.reduce(
+        (
+          acc,
+          curr
+        ) => {
+          acc[curr.tierId] =
+            Number(
+              curr.count
+            );
+
+          return acc;
+        },
+        {}
+      );
+
+    return tiers
+      .map((tier) => {
+        const subscribers =
+          countMap[
+            tier.id
+          ] || 0;
+
+        return {
+          tierId:
+            tier.id,
+
+          tierName:
+            tier.name,
+
+          subscribers,
+
+          revenue:
+            subscribers *
+            tier.price,
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.revenue -
+          a.revenue
+      );
+  };
 
 module.exports = {
   getOverview,
@@ -274,5 +545,5 @@ module.exports = {
   getSubscriberGrowth,
   getRevenueHistory,
   getChurnRate,
-  getTierPerformance, 
+  getTierPerformance,
 };
