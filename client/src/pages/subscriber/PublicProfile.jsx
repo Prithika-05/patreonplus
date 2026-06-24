@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user.service';
 import { subscriptionService } from '@/services/subscription.service';
+import { createCheckout } from '@/services/payment.service';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,13 +26,24 @@ const PublicProfile = () => {
   : (profileResponse?.data || profileResponse?.data?.data || []);
 
   const subscribeMutation = useMutation({
-    mutationFn: subscriptionService.subscribe,
-    onSuccess: () => {
-      toast.success('Successfully subscribed! Redirecting...');
-      navigate('/subscriber/subscriptions');
+    mutationFn: createCheckout,
+    onSuccess: (response) => {
+      const checkoutUrl =  response.data.url;
+      
+      if (checkoutUrl) {
+        toast.success('Redirecting to secure payment page...');
+        window.location.href = checkoutUrl;
+      } else {
+        console.error("Payload structure missing url:", response);
+        toast.error('Failed to parse checkout link structure.');
+      }
     },
-    onError: (error) => toast.error(error.response?.data?.message || 'Failed to subscribe'),
+    onError: (error) => {
+      console.error("Mutation failure details:", error.response?.data);
+      toast.error(error.response?.data?.message || 'Failed to initialize payment engine');
+    },
   });
+
 
   if (isLoading) {
     return (

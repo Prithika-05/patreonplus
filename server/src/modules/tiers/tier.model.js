@@ -44,6 +44,12 @@ const Tier = sequelize.define(
       allowNull: false,
       validate: { min: 1 },
     },
+
+    // ADDED FOR STRIPE INTEGRATION:
+    stripePriceId: {
+      type: DataTypes.STRING,
+      allowNull: true, // Remains null until the creator creates the tier on Stripe
+    },
   },
   {
     tableName: "tiers",

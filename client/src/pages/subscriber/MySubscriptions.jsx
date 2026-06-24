@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { subscriptionService } from '@/services/subscription.service';
+import { createCheckout } from '@/services/payment.service';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,20 +13,26 @@ import { useState } from 'react';
 const MySubscriptions = () => {
   const queryClient = useQueryClient();
   const [cancellingId, setCancellingId] = useState(null);
+  const [redirectingTierId, setRedirectingTierId] = useState(null);
 
   const { data: subscriptionsResponse, isLoading } = useQuery({
     queryKey: ['my-subscriptions'],
     queryFn: subscriptionService.getMySubscriptions,
   });
 
+  console.log("Raw Subscriptions API response:", subscriptionsResponse);
+
   const subscriptions = Array.isArray(subscriptionsResponse)
   ? subscriptionsResponse
   : (subscriptionsResponse?.data || subscriptionsResponse?.data?.data || []); 
 
+
   const cancelMutation = useMutation({
     mutationFn: subscriptionService.cancelSubscription,
     onSuccess: () => {
-      queryClient.invalidateQueries(['my-subscriptions']);
+      queryClient.invalidateQueries({
+        queryKey: ['my-subscriptions']
+      });
       toast.success('Subscription cancelled successfully');
       setCancellingId(null);
     },
@@ -35,11 +42,32 @@ const MySubscriptions = () => {
     },
   });
 
+  const checkoutMutation = useMutation({
+    mutationFn: createCheckout,
+    onSuccess: (response) => {
+      if (response?.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error('Failed to parse a checkout redirect session link.');
+        setRedirectingTierId(null);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to initialize payment workflow');
+      setRedirectingTierId(null);
+    },
+  });
+
   const handleCancel = (id) => {
     if (window.confirm("Are you sure you want to cancel this subscription? You will lose access to exclusive content immediately.")) {
       setCancellingId(id);
       cancelMutation.mutate(id);
     }
+  };
+
+  const handleRenewOrUpgrade = (tierId) => {
+    setRedirectingTierId(tierId);
+    checkoutMutation.mutate(tierId);
   };
 
   const getStatusConfig = (status) => {
@@ -77,6 +105,7 @@ const MySubscriptions = () => {
           description: 'Unknown status'
         };
     }
+    
   };
 
   const getProgress = (endDate) => {
@@ -214,26 +243,27 @@ const MySubscriptions = () => {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="pt-2">
+                  {/* STRIPE BUTTON ACTIONS IN THE FOOTER */}
+                  <CardFooter className="pt-2 border-t border-border/40 bg-muted/5 gap-2">
                     {sub.status === 'active' ? (
                       <Button 
-                        variant="outline" 
-                        className="w-full border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        size="sm" 
+                        variant="destructive" 
+                        className="w-full text-xs" 
                         onClick={() => handleCancel(sub.id)}
                         disabled={cancelMutation.isPending && cancellingId === sub.id}
                       >
-                        {cancelMutation.isPending && cancellingId === sub.id ? (
-                          <>
-                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-                            Cancelling...
-                          </>
-                        ) : (
-                          <>Cancel Subscription</>
-                        )}
+                        {cancelMutation.isPending && cancellingId === sub.id ? 'Cancelling...' : 'Cancel Subscription'}
                       </Button>
                     ) : (
-                      <Button variant="secondary" className="w-full" disabled>
-                        {sub.status === 'expired' ? 'Renew to Access' : 'Inactive'}
+                      <Button 
+                        size="sm" 
+                        variant="default" 
+                        className="w-full text-xs shadow-md shadow-primary/10" 
+                        onClick={() => handleRenewOrUpgrade(sub.tier?.id)}
+                        disabled={checkoutMutation.isPending}
+                      >
+                        {redirectingTierId === sub.tier?.id ? 'Redirecting...' : 'Resubscribe / Renew'}
                       </Button>
                     )}
                   </CardFooter>

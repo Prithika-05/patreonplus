@@ -1,3 +1,5 @@
+// server/src/modules/subscriptions/subscription.service.js
+
 const Subscription = require("./subscription.model");
 const Tier = require("../tiers/tier.model");
 const AppError = require("../../utils/AppError");
@@ -6,19 +8,13 @@ const subscribe = async (userId, tierId) => {
   const tier = await Tier.findByPk(tierId);
 
   if (!tier) {
-  throw new AppError(
-      "Tier not found",
-      404
-    );
+    throw new AppError("Tier not found", 404);
   }
 
   const creatorId = tier.creatorId;
 
   if (creatorId === userId) {
-    throw new AppError(
-      "You cannot subscribe to your own tier",
-      400
-    );
+    throw new AppError("You cannot subscribe to your own tier", 400);
   }
 
   let subscription = await Subscription.findOne({
@@ -58,7 +54,7 @@ const getMySubscriptions = async (userId) => {
     where: { subscriberId: userId },
     include: [
       { model: Tier, as: "tier" },
-      { model: require("../users/user.model"), as: "creator" },
+      { model: require("../users/user.model"), as: "creator", attributes: ["id", "name", "username"]  },
     ],
   });
 };
@@ -67,17 +63,11 @@ const cancelSubscription = async (id, userId) => {
   const subscription = await Subscription.findByPk(id);
 
   if (!subscription) {
-    throw new AppError(
-      "Subscription not found",
-      404
-    );
+    throw new AppError("Subscription not found", 404);
   }
 
   if (subscription.subscriberId !== userId) {
-      throw new AppError(
-      "Unauthorized",
-      403
-    );
+    throw new AppError("Unauthorized", 403);
   }
 
   subscription.status = "cancelled";
@@ -86,9 +76,17 @@ const cancelSubscription = async (id, userId) => {
   return subscription;
 };
 
+const getSubscriptionBySessionId = async (sessionId) => {
+  return await Subscription.findOne({
+    where: {
+      checkoutSessionId: sessionId, 
+    },
+  });
+};
+
 module.exports = {
   subscribe,
   getMySubscriptions,
   cancelSubscription,
+  getSubscriptionBySessionId, 
 };
- 

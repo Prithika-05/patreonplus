@@ -7,6 +7,19 @@ const api = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
@@ -14,15 +27,40 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+}, (error) => Promise.reject(error));
+
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Mark request to avoid infinite loops
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true; 
+      isRefreshing = true;
 
       try {
         const refreshToken = localStorage.getItem('refreshToken');
@@ -31,18 +69,25 @@ api.interceptors.response.use(
           throw new Error("No refresh token available");
         }
 
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const response = await api.post('/auth/refresh', { refreshToken });
 
-        const { accessToken } = response.data.data;
+        const { accessToken } = response.data?.data || response.data || {};
+
+        if (!accessToken) {
+          throw new Error("Failed to parse access token from backend response");
+        }
 
         localStorage.setItem('accessToken', accessToken);
-
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+        processQueue(null, accessToken);
+        isRefreshing = false;
 
         return api(originalRequest);
       } catch (refreshError) {
+        processQueue(refreshError, null);
+        isRefreshing = false;
+
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');

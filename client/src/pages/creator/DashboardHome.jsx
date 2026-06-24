@@ -35,15 +35,13 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+
 const DashboardHome = () => {
-  const {
-    data: overview,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["creator-analytics"],
-    queryFn: analyticsService.getCreatorOverview,
-  });
+  const { data, isLoading, isError, error } = useQuery({
+  queryKey:["analytics"],
+  queryFn:
+    analyticsService.getOverview,
+});
 
   if (isLoading) {
     return (
@@ -66,43 +64,51 @@ const DashboardHome = () => {
     );
   }
 
+  const overview = data?.data || {}; 
+
+  const totalSubscribers = overview.totalSubscribers || 0;
+  const totalContent = overview.totalContent || 0;
+  const monthlyRevenue = overview.monthlyRevenue || 0;
+  const arpu = totalSubscribers > 0 ? (monthlyRevenue / totalSubscribers) : 0;
+
   const stats = [
     {
       title: "Total Revenue",
-      value: `$${overview?.totalRevenue.toFixed(2) || "0.00"}`,
+      value: `$${Number(monthlyRevenue).toFixed(2)}`, // Safe cast conversion
       icon: DollarSign,
-      description: "+12.5% from last month",
+      description: "Live calculated earnings",
       trend: "up",
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
     },
     {
       title: "Active Subscribers",
-      value: overview?.activeSubscribers || 0,
+      value: totalSubscribers,
       icon: Users,
-      description: "+5 new this week",
+      description: "Active platform supporters",
       trend: "up",
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
     {
-      title: "Total Tiers",
-      value: overview?.totalTiers || 0,
-      icon: Layers,
-      description: "Membership levels",
-      trend: "neutral",
-      color: "text-violet-500",
-      bg: "bg-violet-500/10",
-    },
-    {
       title: "Total Content",
-      value: overview?.totalContent || 0,
+      value: totalContent,
       icon: FileText,
       description: "Posts & videos published",
       trend: "up",
       color: "text-orange-500",
       bg: "bg-orange-500/10",
     },
+    {
+      title: "Avg. Revenue Per Subscriber",
+      value: `$${Number(arpu).toFixed(2)}`,
+      icon: TrendingUp,
+      description: "Average value per member",
+      trend: "up",
+      color: "text-violet-500",
+      bg: "bg-violet-500/10",
+    },
+
   ];
 
   return (

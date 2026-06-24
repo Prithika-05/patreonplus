@@ -1,9 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 
-const User = require("../users/user.model");
-const Tier = require("../tiers/tier.model");
-
 const Subscription = sequelize.define(
   "Subscription",
   {
@@ -27,6 +24,22 @@ const Subscription = sequelize.define(
       type: DataTypes.ENUM("active", "cancelled", "expired"),
       defaultValue: "active",
     },
+
+    checkoutSessionId: {
+      type: DataTypes.STRING,
+      allowNull: true, 
+      field: 'checkout_session_id' 
+    },
+
+    stripeCustomerId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    stripeSubscriptionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "subscriptions",
@@ -40,17 +53,17 @@ const Subscription = sequelize.define(
   },
 );
 
-Subscription.belongsTo(User, {
+Subscription.belongsTo(sequelize.models.User || 'User', {
   foreignKey: "subscriberId",
   as: "subscriber",
 });
 
-Subscription.belongsTo(User, {
+Subscription.belongsTo(sequelize.models.User || 'User', {
   foreignKey: "creatorId",
   as: "creator",
 });
 
-Subscription.belongsTo(Tier, {
+Subscription.belongsTo(sequelize.models.Tier || 'Tier', {
   foreignKey: "tierId",
   as: "tier",
 });
