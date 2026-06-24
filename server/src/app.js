@@ -16,14 +16,14 @@ const paymentRoutes = require("./modules/payments/payment.routes");
 const webhookController = require("./modules/payments/webhook.controller");
 const errorHandler = require("./middleware/errorHandler");
 const sanitize = require("./middleware/sanitize");
-
+const uploadRoutes = require("./modules/uploads/upload.routes");
 const app = express();
 
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'authorization', 'X-Requested-With', 'Accept']
 }));
 
 app.post(
@@ -58,6 +58,7 @@ app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
 app.use( "/payments", paymentRoutes);
 app.use("/analytics", analyticsRoutes);
+app.use("/uploads",uploadRoutes);
 
 app.use(errorHandler);
 

@@ -11,12 +11,21 @@ import { toast } from 'sonner';
 import { Plus, Trash2, ExternalLink, FileText, Image as ImageIcon, Video, Lock, Sparkles, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { contentSchema } from "@/validations/content.schema";
+import { uploadFile } from "@/services/upload.service";
 
 const Contents = () => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ title: '', description: '', fileUrl: '', tierId: '' });
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    fileKey: '',
+    tierId: '',
+    previewUrl: ''
+  });
+
   const [errors, setErrors] = useState({});
+  const [isUploading, setIsUploading] = useState(false);
 
 const { data: contentsResponse, isLoading } = useQuery({
     queryKey: ['contents'],
@@ -43,7 +52,7 @@ const { data: contentsResponse, isLoading } = useQuery({
       queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content published successfully!');
       setOpen(false);
-      setFormData({ title: '', description: '', fileUrl: '', tierId: '' });
+      setFormData({ title: '', description: '', fileUrl: '', tierId: '', previewUrl: '' });
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to create content'),
   });
@@ -60,7 +69,14 @@ const { data: contentsResponse, isLoading } = useQuery({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const validation = contentSchema.safeParse(formData);
+    if (isUploading || !formData.fileUrl) return;
+
+    const validation = contentSchema.safeParse({
+      title: formData.title,
+      description: formData.description,
+      fileUrl: formData.fileUrl,
+      tierId: formData.tierId
+    });
 
     if (!validation.success) {
       const fieldErrors = {};
@@ -76,14 +92,26 @@ const { data: contentsResponse, isLoading } = useQuery({
 
     setErrors({});
 
-    createMutation.mutate(formData);
+    createMutation.mutate({
+      title: formData.title,
+      description: formData.description,
+      fileKey: formData.fileKey,
+      tierId: formData.tierId
+    });
   };
 
+  const getCleanPath = (url) => {
+    if (!url) return '';
+    return url.split('?')[0];
+  };
+
+
   const getFileIcon = (url) => {
-    if (!url) return <FileText className="h-6 w-6" />;
-    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return <ImageIcon className="h-6 w-6" />;
-    if (/\.(mp4|mov|avi|mkv)$/i.test(url)) return <Video className="h-6 w-6" />;
-    return <FileText className="h-6 w-6" />;
+    if (!url) return <FileText className="h-6 w-6 text-muted-foreground" />;
+    const cleanUrl = url.split('?')[0]; 
+    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(cleanUrl)) return <ImageIcon className="h-6 w-6 text-blue-500" />;
+    if (/\.(mp4|mov|avi|mkv)$/i.test(cleanUrl)) return <Video className="h-6 w-6 text-red-500" />;
+    return <FileText className="h-6 w-6 text-muted-foreground" />;
   };
 
   if (isLoading) {
@@ -104,13 +132,15 @@ const { data: contentsResponse, isLoading } = useQuery({
           <p className="text-muted-foreground mt-1">Manage your exclusive posts, videos, and files.</p>
         </div>
         
-        <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="shadow-lg shadow-primary/20 group">
+            <button className="inline-flex shrink-0 items-center justify-center rounded-md font-medium text-sm transition-colors bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 h-9 px-4 py-2 group">
               <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" /> 
               Add New Content
-            </Button>
+            </button>
           </DialogTrigger>
+
+
           
           <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-border/50">
             <div className="bg-gradient-to-r from-primary to-violet-600 p-6 text-primary-foreground">
@@ -167,24 +197,61 @@ const { data: contentsResponse, isLoading } = useQuery({
                 </div>
 
                 <div className="space-y-2 col-span-2">
-                  <Label htmlFor="fileUrl" className="text-sm font-semibold">Media URL</Label>
+                  <Label htmlFor="file" className="text-sm font-semibold">Upload Content Media</Label>
                   <div className="relative">
-                    <ExternalLink className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="fileUrl"
-                      placeholder="https://cdn.example.com/video.mp4"
-                      value={formData.fileUrl}
-                      onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                      required
-                      className="pl-9 font-mono text-xs"
+                      id="file"
+                      type="file"
+                      accept="image/jpeg,image/png,application/pdf,video/mp4"
+                      onChange={async (e) => {
+                        const selectedFile = e.target.files[0];
+                        if (!selectedFile) return;
+
+                        if (errors.fileUrl) {
+                          setErrors({ ...errors, fileUrl: "" });
+                        }
+
+                        try {
+                          setIsUploading(true);
+                          toast.loading("Uploading asset securely to AWS S3...", { id: "s3-upload" });
+
+                          const uploadResult = await uploadFile(selectedFile);
+                          
+                          const { key, url } = uploadResult.data;
+
+                          setFormData({
+                            ...formData,
+                            fileKey: key,
+                            previewUrl: url
+                          });
+                          
+                          toast.success("Media uploaded successfully!", { id: "s3-upload" });
+                        } catch (uploadError) {
+                          console.error("S3 upload failed:", uploadError);
+                          setErrors({
+                            ...errors,
+                            fileUrl: uploadError.response?.data?.message || uploadError.message || "Failed to upload file to S3."
+                          });
+                          toast.error("Upload failed. Please check constraints.", { id: "s3-upload" });
+                        }finally {
+                          setIsUploading(false);
+                        }
+                      }}
+                      className="cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:opacity-90"
                     />
                   </div>
+                  
+                  {formData.fileUrl && !errors.fileUrl && (
+                    <p className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                      ✓ Ready: File verified & reference tracking attached.
+                    </p>
+                  )}
+
                   {errors.fileUrl && (
                     <p className="text-sm text-destructive">
                       {errors.fileUrl}
                     </p>
                   )}
-                  <p className="text-[10px] text-muted-foreground">Direct link to image, video, or document.</p>
                 </div>
 
                 <div className="space-y-2 col-span-2">
@@ -216,8 +283,11 @@ const { data: contentsResponse, isLoading } = useQuery({
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Publishing...' : 'Publish Content'}
+                <Button 
+                  type="submit" 
+                  // disabled={isUploading || !formData.fileUrl || createMutation.isPending}
+                >
+                  {isUploading ? 'Uploading File...' : createMutation.isPending ? 'Publishing...' : 'Publish Content'}
                 </Button>
               </DialogFooter>
             </form>
@@ -241,6 +311,8 @@ const { data: contentsResponse, isLoading } = useQuery({
 
               return contents.map((content) => {
                 const tier = flatTiers.find((t) => t.id === content.tierId);
+
+                const cleanFilePath = getCleanPath(content.fileUrl);
                 
                 return (
                   <motion.div
@@ -253,8 +325,17 @@ const { data: contentsResponse, isLoading } = useQuery({
                     className="group relative flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm transition-all hover:shadow-xl hover:border-primary/30"
                   >
                     <div className="relative aspect-video w-full bg-muted/50 flex items-center justify-center overflow-hidden">
-                      <div className="text-muted-foreground/40 transform group-hover:scale-110 transition-transform duration-500">
-                        {getFileIcon(content.fileUrl)}
+                      <div className="w-full h-full text-muted-foreground/40 transform group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
+                        {/\.(jpg|jpeg|png|webp)$/i.test(cleanFilePath) ? (
+                          <img src={content.fileUrl} className="h-full w-full object-cover" alt="" />
+                        ) : /\.(mp4|webm)$/i.test(cleanFilePath) ? (
+                          <video src={content.fileUrl} controls className="h-full w-full object-contain bg-black" />
+                        ) : (
+                          <div className="flex flex-col items-center gap-2 font-medium text-sm">
+                            {getFileIcon(content.fileUrl)} 
+                            <span>Secure Attachment</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="absolute top-3 right-3">

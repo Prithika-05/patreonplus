@@ -3,153 +3,150 @@ const { Op } = require("sequelize");
 const Subscription = require("../subscriptions/subscription.model");
 const Tier = require("../tiers/tier.model");
 const AppError = require("../../utils/AppError");
-
+const uploadService = require("../uploads/upload.service"); 
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
-    throw new AppError(
-      "Tier ID is required",
-      400
-    );
+    throw new AppError("Tier ID is required", 400);
   }
 
   const tier = await Tier.findByPk(data.tierId);
-
   if (!tier) {
-    throw new AppError(
-      "Invalid tier",
-      404
-    );
+    throw new AppError("Invalid tier", 404);
   }
 
   if (tier.creatorId !== creatorId) {
-    throw new AppError(
-      "You cannot use this tier",
-      403
-    );
+    throw new AppError("You cannot use this tier", 403);
   }
 
-  const existingContent =
-    await Content.findOne({
-      where: {
-        creatorId,
-        title: data.title,
-      },
-    });
+  const existingContent = await Content.findOne({
+    where: {
+      creatorId,
+      title: data.title,
+    },
+  });
 
   if (existingContent) {
-    throw new AppError(
-      "Content with this title already exists",
-      409
-    );
+    throw new AppError("Content with this title already exists", 409);
   }
 
-  return await Content.create({
+  const content = await Content.create({
     title: data.title,
     description: data.description,
-    fileUrl: data.fileUrl,
+    fileKey: data.fileKey, // Stores clean relative path string keys from S3
     tierId: data.tierId,
     creatorId,
   });
+
+  const secureUrl = await uploadService.getSecureUrl(content.fileKey);
+  return {
+    ...content.toJSON(),
+    fileUrl: secureUrl,
+  };
 };
 
 const updateContent = async (id, data, creatorId) => {
   const content = await Content.findByPk(id);
-
   if (!content) {
-  throw new AppError(
-    "Content not found",
-    404
-  );
-}
+    throw new AppError("Content not found", 404);
+  }
 
-  if (
-  content.creatorId !== creatorId
-  ) {
-    throw new AppError(
-      "Unauthorized",
-      403
-    );
+  if (content.creatorId !== creatorId) {
+    throw new AppError("Unauthorized", 403);
   }
 
   if (!data.tierId) {
-    throw new AppError(
-      "Tier ID is required",
-      400
-    );
+    throw new AppError("Tier ID is required", 400);
   }
 
   const tier = await Tier.findByPk(data.tierId);
-
   if (!tier) {
-      throw new AppError(
-      "Invalid tier",
-      404
-    );
+    throw new AppError("Invalid tier", 404);
   }
 
   if (tier.creatorId !== creatorId) {
-      throw new AppError(
-        "You cannot use this tier",
-        403
-      );
-    }
+    throw new AppError("You cannot use this tier", 403);
+  }
 
   await content.update(data);
-  return content;
+  
+  const secureUrl = await uploadService.getSecureUrl(content.fileKey);
+  return {
+    ...content.toJSON(),
+    fileUrl: secureUrl,
+  };
 };
+
 const getAllContents = async (creatorId) => {
-  return await Content.findAll({
+  const contents = await Content.findAll({
     where: { creatorId },
+    order: [["createdAt", "DESC"]],
   });
+
+  return await Promise.all(
+    contents.map(async (item) => {
+      const secureUrl = await uploadService.getSecureUrl(item.fileKey);
+      return {
+        ...item.toJSON(),
+        fileUrl: secureUrl,
+      };
+    })
+  );
 };
 
 const getContentById = async (id, userId) => {
   if (!userId) {
-    throw new AppError(
-      "User ID is required",
-      400
-    );
+    throw new AppError("User ID is required", 400);
   }
 
-  const content = await Content.findOne({
+  const content = await Content.findByPk(id);
+  if (!content) {
+    throw new AppError("Content not found", 404);
+  }
+
+  const formatStep8Response = async (contentInstance) => {
+    const secureUrl = await uploadService.getSecureUrl(contentInstance.fileKey);
+    return {
+      ...contentInstance.toJSON(),
+      fileUrl: secureUrl,
+    };
+  };
+
+  if (content.creatorId === userId) {
+    return await formatStep8Response(content);
+  }
+
+  const now = new Date();
+  const activeSub = await Subscription.findOne({
     where: {
-      id,
-      creatorId: userId,
+      subscriberId: userId,
+      creatorId: content.creatorId,
+      status: "active",
+      endDate: { [Op.gte]: now },
     },
+    include: [{ model: Tier, as: "tier" }],
   });
 
-  if (!content) {
-    throw new AppError(
-      "Content not found",
-      404
-    );
+  if (!activeSub) {
+    throw new AppError("You must subscribe to view this content", 403);
   }
 
-  if (content.creatorId !== userId) {
-    throw new AppError(
-      "Unauthorized",
-      403
-    );
+  const targetTier = await Tier.findByPk(content.tierId);
+  if (targetTier.level > activeSub.tier.level) {
+    throw new AppError("Upgrade your tier level to view this content", 403);
   }
 
-  return content;
+  return await formatStep8Response(content);
 };
+
 const deleteContent = async (id, userId) => {
   const content = await Content.findByPk(id);
-
   if (!content) {
-    throw new AppError(
-      "Content not found",
-      404
-    );
+    throw new AppError("Content not found", 404);
   }
 
   if (content.creatorId !== userId) {
-    throw new AppError(
-      "Unauthorized",
-      403
-    );
+    throw new AppError("Unauthorized", 403);
   }
 
   await content.destroy();
@@ -195,15 +192,23 @@ const getSubscriberFeed = async (userId) => {
         { model: Tier, as: "tier" },
         { model: require("../users/user.model"), as: "creator" },
       ],
-      order: [["createdAt", "DESC"]],
     });
   });
 
   const results = await Promise.all(contentPromises);
   let feed = results.flat();
 
-  feed.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  feed = await Promise.all(
+    feed.map(async (item) => {
+      const secureUrl = await uploadService.getSecureUrl(item.fileKey);
+      return {
+        ...item.toJSON(),
+        fileUrl: secureUrl,
+      };
+    })
+  );
 
+  feed.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   return feed;
 };
 

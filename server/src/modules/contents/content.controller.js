@@ -1,5 +1,6 @@
 const contentService = require("./content.service");
 const asyncHandler = require("../../utils/asyncHandler");
+const uploadService = require("../uploads/upload.service")
 
 const createContent = asyncHandler(async (req, res) => {
     const content =
@@ -7,6 +8,9 @@ const createContent = asyncHandler(async (req, res) => {
         req.body,
         req.user.id
       );
+    if (content.fileUrl) {
+    content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
+  }
 
     return res.status(201).json({
       success: true,
@@ -21,6 +25,10 @@ const updateContent = asyncHandler(async (req, res) => {
     req.body,
     req.user.id
   );
+
+  if (content && content.fileUrl) {
+    content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
+  }
   
   return res.status(201).json({
     success: true,
@@ -31,6 +39,15 @@ const updateContent = asyncHandler(async (req, res) => {
 
 const getAllContents = asyncHandler(async (req, res) => {
   const contents = await contentService.getAllContents(req.user.id);
+
+  const secureContents = await Promise.all(
+    contents.map(async (item) => {
+      if (item.fileUrl) {
+        item.dataValues.fileUrl = await uploadService.getSecureUrl(item.fileUrl);
+      }
+      return item;
+    })
+  );
   
   return res.status(200).json({
     success: true,
@@ -43,6 +60,10 @@ const getContentById = asyncHandler(async (req, res) => {
     req.params.id,
     req.user.id
   );
+
+  if (content && content.fileUrl) {
+    content.dataValues.fileUrl = await uploadService.getSecureUrl(content.fileUrl);
+  }
   
   return res.status(200).json({
     success: true,
@@ -61,6 +82,15 @@ const deleteContent = asyncHandler(async (req, res) => {
 
 const getSubscriberFeed = asyncHandler(async (req, res) => {
   const contents = await contentService.getSubscriberFeed(req.user.id);
+
+  const secureFeed = await Promise.all(
+    contents.map(async (item) => {
+      if (item.fileUrl) {
+        item.dataValues.fileUrl = await uploadService.getSecureUrl(item.fileUrl);
+      }
+      return item;
+    })
+  );
   
   return res.status(200).json({
     success: true,
