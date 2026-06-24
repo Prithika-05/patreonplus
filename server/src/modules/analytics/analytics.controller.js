@@ -1,53 +1,135 @@
 const asyncHandler = require("../../utils/asyncHandler");
+
 const analyticsService = require("./analytics.service");
+const contentViewService = require(
+  "../contentViews/contentView.service"
+);
 
+/**
+ * Dashboard Overview
+ */
 const getOverview = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getOverview(req.user.id);
+  const data = await analyticsService.getOverview(
+    req.user.id
+  );
+
   return res.status(200).json({
     success: true,
     data,
   });
 });
 
-const getRecentSubscribers = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getRecentSubscribers(req.user.id);
-  return res.status(200).json({
-    success: true,
-    data,
-  });
-});
+/**
+ * Recent Subscribers
+ */
+const getRecentSubscribers = asyncHandler(
+  async (req, res) => {
+    const data =
+      await analyticsService.getRecentSubscribers(
+        req.user.id
+      );
 
-const getSubscriberGrowth = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getSubscriberGrowth(req.user.id);
-  return res.status(200).json({
-    success: true,
-    data,
-  });
-});
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
 
-const getRevenueHistory = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getRevenueHistory(req.user.id);
-  return res.status(200).json({
-    success: true,
-    data,
-  });
-});
 
-const getChurnRate = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getChurnRate(req.user.id);
-  return res.status(200).json({
-    success: true,
-    data,
-  });
-});
+const getSubscriberGrowth = asyncHandler(
+  async (req, res) => {
+    const data =
+      await analyticsService.getSubscriberGrowth(
+        req.user.id
+      );
 
-const getTierPerformance = asyncHandler(async (req, res) => {
-  const data = await analyticsService.getTierPerformance(req.user.id);
-  return res.status(200).json({
-    success: true,
-    data,
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
+
+
+const getRevenueHistory = asyncHandler(
+  async (req, res) => {
+    const data =
+      await analyticsService.getRevenueHistory(
+        req.user.id
+      );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
+
+
+const getChurnRate = asyncHandler(
+  async (req, res) => {
+    const data =
+      await analyticsService.getChurnRate(
+        req.user.id
+      );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
+
+
+const getTierPerformance = asyncHandler(
+  async (req, res) => {
+    const data =
+      await analyticsService.getTierPerformance(
+        req.user.id
+      );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
+
+const getTopContent = asyncHandler(
+  async (req, res) => {
+    const limit = Number(
+      req.query.limit || 10
+    );
+
+    const data =
+      await contentViewService.getTopContent(
+        req.user.id,
+        limit
+      );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  }
+);
+
+
+const getContentEngagement =
+  asyncHandler(async (req, res) => {
+    const { contentId } = req.params;
+
+    const data =
+      await contentViewService.getContentEngagement(
+        contentId
+      );
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
   });
-});
 
 module.exports = {
   getOverview,
@@ -55,5 +137,8 @@ module.exports = {
   getSubscriberGrowth,
   getRevenueHistory,
   getChurnRate,
-  getTierPerformance, // Export the controller method
+  getTierPerformance,
+
+  getTopContent,
+  getContentEngagement,
 };

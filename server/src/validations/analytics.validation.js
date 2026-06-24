@@ -1,9 +1,6 @@
 const { z } = require("zod");
 
-/**
- * Validates request query properties directly
- * Comports with validate(schema, "query") middleware design
- */
+
 const analyticsQuerySchema = z
   .object({
     startDate: z
@@ -27,6 +24,7 @@ const analyticsQuerySchema = z
       path: ["endDate"], // Maps the path straight to the 'endDate' key
     }
   );
+  
 
 module.exports = {
   analyticsQuerySchema,

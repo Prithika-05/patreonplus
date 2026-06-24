@@ -6,7 +6,16 @@ const {
 } = require("../auth/auth.middleware");
 
 const validate = require("../../middleware/validate");
-const { analyticsQuerySchema } = require("../../validations/analytics.validation");
+
+const {
+  analyticsQuerySchema,
+} = require("../../validations/analytics.validation");
+
+const {
+  contentIdParamSchema,
+  topContentQuerySchema,
+} = require("../../validations/contentView.validation");
+
 const controller = require("./analytics.controller");
 
 const router = express.Router();
@@ -19,12 +28,14 @@ router.get(
   controller.getOverview
 );
 
+
 router.get(
   "/recent-subscribers",
   authenticate,
   authorizeRole("creator"),
   controller.getRecentSubscribers
 );
+
 
 router.get(
   "/subscriber-growth",
@@ -34,6 +45,7 @@ router.get(
   controller.getSubscriberGrowth
 );
 
+
 router.get(
   "/revenue-history",
   authenticate,
@@ -41,6 +53,7 @@ router.get(
   validate(analyticsQuerySchema, "query"),
   controller.getRevenueHistory
 );
+
 
 router.get(
   "/churn",
@@ -54,6 +67,22 @@ router.get(
   authenticate,
   authorizeRole("creator"),
   controller.getTierPerformance
+);
+
+router.get(
+  "/top-content",
+  authenticate,
+  authorizeRole("creator"),
+  validate(topContentQuerySchema, "query"),
+  controller.getTopContent
+);
+
+router.get(
+  "/content/:contentId",
+  authenticate,
+  authorizeRole("creator"),
+  validate(contentIdParamSchema, "params"),
+  controller.getContentEngagement
 );
 
 module.exports = router;
