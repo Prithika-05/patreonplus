@@ -239,11 +239,31 @@ const getSubscriberFeed = async (userId) => {
         },
       }));
 
+      const comments = await ContentComment.findAll({
+        where: {
+          contentId: item.id,
+        },
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: [
+              "id",
+              "name",
+              "username",
+              "profileImage",
+            ],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+
       return {
         ...item.toJSON(),
         previewUrl: await uploadService.getSecureUrl(item.fileKey),
         likesCount,
         commentsCount,
+        comments,
         liked,
       };
     })

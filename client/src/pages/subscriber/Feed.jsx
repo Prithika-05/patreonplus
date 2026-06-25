@@ -36,7 +36,6 @@ const Feed = () => {
 
   const [openComments, setOpenComments] = useState(null);
   const [commentText, setCommentText] = useState("");
-  console.log(contentService.addComment);
 
   const likeMutation = useMutation({
     mutationFn: contentService.toggleLike,
@@ -363,7 +362,6 @@ const Feed = () => {
 
                       </div>
 
-                      {/* Comments section goes HERE, outside the flex row */}
                       {openComments === content.id && (
                         <div className="mt-4 border-t pt-4 space-y-4">
 
@@ -389,7 +387,7 @@ const Feed = () => {
                                   </div>
 
                                   <p className="mt-1 text-sm">
-                                    {comment.text}
+                                    {comment.comment}
                                   </p>
                                 </div>
                               ))
@@ -408,7 +406,6 @@ const Feed = () => {
                             <Button
                               disabled={!commentText.trim()}
                               onClick={() => {
-                                console.log("POST CLICKED");
 
                                 commentMutation.mutate({
                                   contentId: content.id,
