@@ -10,6 +10,7 @@ require("./modules/payments/paymentEvent.model");
 const authRoutes = require("./modules/auth/auth.routes");
 const tierRoutes = require("./modules/tiers/tier.routes");
 const contentRoutes = require("./modules/contents/content.routes");
+const contentLikeRoutes = require("./modules/contentLikes/contentLike.routes");
 const subscriptionRoutes = require("./modules/subscriptions/subscription.routes");
 const userRoutes = require("./modules/users/user.routes");
 const paymentRoutes = require("./modules/payments/payment.routes");
@@ -17,6 +18,8 @@ const webhookController = require("./modules/payments/webhook.controller");
 const errorHandler = require("./middleware/errorHandler");
 const sanitize = require("./middleware/sanitize");
 const uploadRoutes = require("./modules/uploads/upload.routes");
+const contentCommentRoutes = require("./modules/contentComments/contentComment.routes");
+
 const app = express();
 
 app.use(cors({
@@ -54,6 +57,8 @@ const analyticsRoutes = require("./modules/analytics/analytics.routes");
 app.use("/auth", authRoutes);
 app.use("/tiers", tierRoutes);
 app.use("/contents", contentRoutes);
+app.use("/content-likes", contentLikeRoutes);
+app.use("/content-comments", contentCommentRoutes);
 app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
 app.use( "/payments", paymentRoutes);

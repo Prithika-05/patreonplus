@@ -5,6 +5,8 @@ const Tier = require("../tiers/tier.model");
 const AppError = require("../../utils/AppError");
 const uploadService = require("../uploads/upload.service");
 const User = require("../users/user.model");
+const ContentLike = require("../contentLikes/contentLike.model");
+const ContentComment = require("../contentComments/contentComment.model");
 
 const createContent = async (data, creatorId) => {
   if (!data.tierId) {
@@ -215,10 +217,36 @@ const getSubscriberFeed = async (userId) => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   return await Promise.all(
-    feed.map(async (item) => ({
-      ...item.toJSON(),
-      previewUrl: await uploadService.getSecureUrl(item.fileKey),
-    }))
+    feed.map(async (item) => {
+      const [likesCount, commentsCount] = await Promise.all([
+        ContentLike.count({
+          where: {
+            contentId: item.id,
+          },
+        }),
+
+        ContentComment.count({
+          where: {
+            contentId: item.id,
+          },
+        }),
+      ]);
+
+      const liked = !!(await ContentLike.findOne({
+        where: {
+          contentId: item.id,
+          userId,
+        },
+      }));
+
+      return {
+        ...item.toJSON(),
+        previewUrl: await uploadService.getSecureUrl(item.fileKey),
+        likesCount,
+        commentsCount,
+        liked,
+      };
+    })
   );
 };
 

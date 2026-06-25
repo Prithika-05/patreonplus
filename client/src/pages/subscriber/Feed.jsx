@@ -1,11 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useState } from "react";
 import { contentService } from '../../services/content.service';
 import { Card, CardTitle, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Play, FileText, ExternalLink, Heart, MessageCircle, Share2, Lock } from 'lucide-react';
+import { FileText, Heart, MessageCircle, Share2, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Input } from "@/components/ui/input";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -24,6 +30,36 @@ const Feed = () => {
   const { data: contentsResponse, isLoading } = useQuery({
     queryKey: ['subscriber-feed'],
     queryFn: contentService.getSubscriberFeed,
+  });
+
+  const queryClient = useQueryClient();
+
+  const [openComments, setOpenComments] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  console.log(contentService.addComment);
+
+  const likeMutation = useMutation({
+    mutationFn: contentService.toggleLike,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["subscriber-feed"],
+      });
+    },
+  });
+
+  const commentMutation = useMutation({
+      mutationFn: ({ contentId, text }) =>
+        contentService.addComment(contentId, text),
+
+      onSuccess: (data) => {
+    console.log("Comment Added", data);
+
+    queryClient.invalidateQueries({
+      queryKey: ["subscriber-feed"],
+    });
+
+    setCommentText("");
+  },
   });
 
   const contents =
@@ -283,15 +319,32 @@ const Feed = () => {
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-border/50">
+
                         <div className="flex items-center gap-4">
-                          <Button variant="ghost" size="sm">
-                            <Heart className="h-4 w-4 mr-2" />
-                            Like
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => likeMutation.mutate(content.id)}
+                          >
+                            <Heart
+                              className={`h-4 w-4 mr-2 ${
+                                content.liked ? "fill-red-500 text-red-500" : ""
+                              }`}
+                            />
+                            {content.likesCount}
                           </Button>
 
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              setOpenComments(
+                                openComments === content.id ? null : content.id
+                              )
+                            }
+                          >
                             <MessageCircle className="h-4 w-4 mr-2" />
-                            Comment
+                            {content.comments?.length || 0}
                           </Button>
                         </div>
 
@@ -307,7 +360,69 @@ const Feed = () => {
                             View Content
                           </Button>
                         </a>
+
                       </div>
+
+                      {/* Comments section goes HERE, outside the flex row */}
+                      {openComments === content.id && (
+                        <div className="mt-4 border-t pt-4 space-y-4">
+
+                          <div className="space-y-3">
+                            {(content.comments || []).length === 0 ? (
+                              <p className="text-sm text-muted-foreground">
+                                No comments yet.
+                              </p>
+                            ) : (
+                              content.comments.map((comment) => (
+                                <div
+                                  key={comment.id}
+                                  className="rounded-lg bg-muted/40 p-3"
+                                >
+                                  <div className="flex justify-between">
+                                    <span className="font-semibold text-sm">
+                                      {comment.user?.name}
+                                    </span>
+
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(comment.createdAt).toLocaleDateString()}
+                                    </span>
+                                  </div>
+
+                                  <p className="mt-1 text-sm">
+                                    {comment.text}
+                                  </p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Input
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              placeholder="Write a comment..."
+                              className="flex-1"
+                            />
+                            
+                            
+                            <Button
+                              disabled={!commentText.trim()}
+                              onClick={() => {
+                                console.log("POST CLICKED");
+
+                                commentMutation.mutate({
+                                  contentId: content.id,
+                                  text: commentText,
+                                });
+                              }}
+                            >
+                              Post
+                            </Button>
+                             
+                          </div>
+
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
