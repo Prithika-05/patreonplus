@@ -36,7 +36,6 @@ const createContent = async (data, creatorId) => {
     description: data.description,
     fileKey: data.fileKey,
     tierId: data.tierId,
-    previewUrl: data.previewUrl,
     creatorId,
   });
 
@@ -73,7 +72,7 @@ const updateContent = async (id, data, creatorId) => {
   const secureUrl = await uploadService.getSecureUrl(content.fileKey);
   return {
     ...content.toJSON(),
-    fileUrl: secureUrl,
+    previewUrl: secureUrl,
   };
 };
 
@@ -88,7 +87,7 @@ const getAllContents = async (creatorId) => {
       const secureUrl = await uploadService.getSecureUrl(item.fileKey);
       return {
         ...item.toJSON(),
-        fileUrl: secureUrl,
+        previewUrl: secureUrl,
       };
     })
   );
@@ -108,7 +107,7 @@ const getContentById = async (id, userId) => {
     const secureUrl = await uploadService.getSecureUrl(contentInstance.fileKey);
     return {
       ...contentInstance.toJSON(),
-      fileUrl: secureUrl,
+      previewUrl: secureUrl,
     };
   };
 
@@ -191,8 +190,20 @@ const getSubscriberFeed = async (userId) => {
         },
       },
       include: [
-        { model: Tier, as: "tier" },
-        { model: User, as: "creator" },
+        {
+          model: Tier,
+          as: "tier",
+        },
+        {
+          model: User,
+          as: "creator",
+          attributes: [
+            "id",
+            "name",
+            "username",
+            "profileImage",
+          ],
+        },
       ],
     });
   });
@@ -203,7 +214,12 @@ const getSubscriberFeed = async (userId) => {
     .flat()
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  return feed.map((item) => item.toJSON());
+  return await Promise.all(
+    feed.map(async (item) => ({
+      ...item.toJSON(),
+      previewUrl: await uploadService.getSecureUrl(item.fileKey),
+    }))
+  );
 };
 
 module.exports = {

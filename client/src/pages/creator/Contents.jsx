@@ -21,7 +21,6 @@ const Contents = () => {
     description: '',
     fileKey: '',
     tierId: '',
-    previewUrl: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -29,7 +28,7 @@ const Contents = () => {
 
   const { data: contentsResponse, isLoading } = useQuery({
     queryKey: ['contents'],
-    queryFn: contentService.getAllContents, // Or your custom API function string
+    queryFn: contentService.getAllContents,
   });
 
   const contents = Array.isArray(contentsResponse)
@@ -55,7 +54,7 @@ const Contents = () => {
       queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content published successfully!');
       setOpen(false);
-      setFormData({ title: '', description: '', fileKey: '', tierId: '', previewUrl: '' });
+      setFormData({ title: '', description: '', fileKey: '', tierId: '' });
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to create content'),
   });
@@ -219,12 +218,11 @@ const Contents = () => {
 
                           const uploadResult = await uploadFile(selectedFile);
 
-                          const { key, url } = uploadResult.data;
+                          const { key } = uploadResult.data;
 
                           setFormData({
                             ...formData,
                             fileKey: key,
-                            previewUrl: url
                           });
 
                           toast.success("Media uploaded successfully!", { id: "s3-upload" });
@@ -289,7 +287,6 @@ const Contents = () => {
                 </Button>
                 <Button
                   type="submit"
-                // disabled={isUploading || !formData.fileUrl || createMutation.isPending}
                 >
                   {isUploading ? 'Uploading File...' : createMutation.isPending ? 'Publishing...' : 'Publish Content'}
                 </Button>

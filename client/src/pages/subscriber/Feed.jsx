@@ -57,14 +57,51 @@ const Feed = () => {
     );
   }
 
-  const getFileType = (url) => {
-    if (!url) return 'document';
+  const getFileType = (fileKey) => {
+    if (!fileKey) return "document";
 
-    if (/\.(mp4|mov|avi|mkv)$/i.test(url)) return 'video';
+    const file = fileKey.toLowerCase();
 
-    if (/\.(jpg|jpeg|png|gif|webp)/i.test(url)) return 'image';
+    if (
+      file.endsWith(".mp4") ||
+      file.endsWith(".mov") ||
+      file.endsWith(".avi") ||
+      file.endsWith(".mkv") ||
+      file.endsWith(".webm")
+    ) {
+      return "video";
+    }
 
-    return 'document';
+    if (
+      file.endsWith(".jpg") ||
+      file.endsWith(".jpeg") ||
+      file.endsWith(".png") ||
+      file.endsWith(".gif") ||
+      file.endsWith(".webp")
+    ) {
+      return "image";
+    }
+
+    return "document";
+  };
+
+  const handleShare = async (content) => {
+    const shareUrl = `${window.location.origin}/content/${content.id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: content.title,
+          text: content.description,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Share cancelled or failed:", err);
+    }
   };
 
   return (
@@ -128,10 +165,9 @@ const Feed = () => {
           animate="visible"
         >
           {contents.map((content) => {
-            const fileType = getFileType(content.previewUrl);
+            const fileType = getFileType(content.fileKey);
             const creatorInitial =
-              content.creator?.name?.[0]?.toUpperCase() || 'C';
-
+              content.creator?.name?.[0]?.toUpperCase() || 'C'; 
             return (
               <motion.div
                 key={content.id}
@@ -184,31 +220,45 @@ const Feed = () => {
                     </div>
 
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="outline"
+                      onClick={() => handleShare(content)}
                     >
-                      <Share2 className="h-4 w-4" />
+                      <Share2 className="h-4 w-4 mr-2" />
                     </Button>
                   </CardHeader>
 
                   <CardContent className="p-0">
                     <div className="relative w-full h-60 bg-muted/30 overflow-hidden">
-                      {fileType === 'image' ? (
-                        <img
-                          src={content.previewUrl}
-                          alt={content.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          {fileType === 'video' ? (
-                            <Play className="h-20 w-20 text-muted-foreground/40" />
-                          ) : (
+                      <div className="relative w-full h-60 bg-muted/30 overflow-hidden">
+                        {fileType === "image" ? (
+                          <img
+                            src={content.previewUrl}
+                            alt={content.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : fileType === "video" ? (
+                          <video
+                            src={content.previewUrl}
+                            className="w-full h-full object-cover"
+                            controls
+                            preload="metadata"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
                             <FileText className="h-20 w-20 text-muted-foreground/40" />
-                          )}
+                          </div>
+                        )}
+
+                        <div className="absolute top-4 right-4">
+                          <Badge
+                            variant="outline"
+                            className="bg-background/80 backdrop-blur-md"
+                          >
+                            <Lock className="h-3 w-3 mr-1" />
+                            Exclusive
+                          </Badge>
                         </div>
-                      )}
+                      </div>
 
                       <div className="absolute top-4 right-4">
                         <Badge
@@ -245,19 +295,18 @@ const Feed = () => {
                           </Button>
                         </div>
 
-                        <Button
-                          size="sm"
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          asChild
+                        <a
+                          href={content.previewUrl}
+                          target="_blank"
+                          rel="noreferrer"
                         >
-                          <a
-                            href={content.previewUrl}
-                            target="_blank"
-                            rel="noreferrer"
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
                           >
                             View Content
-                          </a>
-                        </Button>
+                          </Button>
+                        </a>
                       </div>
                     </div>
                   </CardContent>
