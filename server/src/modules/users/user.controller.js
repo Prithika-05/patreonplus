@@ -1,31 +1,40 @@
 const userService = require("./user.service");
+const asyncHandler = require("../../utils/asyncHandler");
 
-const searchUsers = async (req, res) => {
-  try {
-    const { query } = req.query;
-    const users = await userService.searchUsers(query);
-     return res.status(200).json({
-      success: true,
-      data: users,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+const searchUsers = asyncHandler(async (req, res) => {
+  const { query } = req.query;
+
+  const users = await userService.searchUsers(query);
+
+  return res.status(200).json({
+    success: true,
+    data: users,
+  });
+});
+
+const getPublicProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const profile = await userService.getPublicProfile(username);
+
+  return res.status(200).json({
+    success: true,
+    data: profile,
+  });
+});
+
+const getMyProfile = asyncHandler(async (req, res) => {
+  const profile = await userService.getMyProfile(req.user.id);
+
+  return res.status(200).json({
+    success: true,
+    data: profile,
+  });
+});
+
+
+module.exports = {
+  searchUsers,
+  getPublicProfile,
+  getMyProfile,
 };
-
-const getPublicProfile = async (req, res) => {
-  try {
-    const { username } = req.params;
-    const profile = await userService.getPublicProfile(username);
-    return res.status(200).json({
-      success: true,
-      data: profile,
-    });
-  }
-  catch (error) {
-    if (error.message === "User not found") return res.status(404).json({ message: error.message });
-    res.status(500).json({ message: error.message });
-  }
-};
-
-module.exports = { searchUsers, getPublicProfile };

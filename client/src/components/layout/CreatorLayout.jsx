@@ -1,18 +1,41 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { LogOut, LayoutDashboard, Layers, FileText, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  LogOut,
+  LayoutDashboard,
+  Layers,
+  FileText,
+  Sparkles,
+  UserCircle,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 const CreatorLayout = () => {
   const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/creator/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/creator/tiers', label: 'Tiers & Plans', icon: Layers },
-    { path: '/creator/contents', label: 'Content Library', icon: FileText },
+    {
+      path: "/creator/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      path: "/creator/tiers",
+      label: "Tiers & Plans",
+      icon: Layers,
+    },
+    {
+      path: "/creator/contents",
+      label: "Content Library",
+      icon: FileText,
+    },
+    {
+      path: "/creator/profile",
+      label: "My Profile",
+      icon: UserCircle,
+    },
   ];
 
   const handleLogout = () => {

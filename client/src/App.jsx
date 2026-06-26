@@ -13,6 +13,7 @@ import Unauthorized from '@/pages/auth/Unauthorized';
 import Explorer from '@/pages/subscriber/Explorer';
 import PublicProfile from '@/pages/subscriber/PublicProfile';
 import PaymentSuccess from './pages/subscriber/PaymentSuccess';
+import Profile from "@/pages/Profile/Profile";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="dashboard" element={<DashboardHome />} />
           <Route path="tiers" element={<Tiers />} />
           <Route path="contents" element={<Contents />} />
+          <Route path="profile" element={<Profile />} />
           <Route index element={<Navigate to="/creator/dashboard" replace />} />
         </Route>
 
@@ -47,6 +49,7 @@ function App() {
           <Route path="feed" element={<Feed />} />
           <Route path="subscriptions" element={<MySubscriptions />} />      
           <Route path="explore" element={<Explorer />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="profile/:username" element={<PublicProfile />} />
           <Route path="success" element={<PaymentSuccess />} />
           <Route index element={<Navigate to="/subscriber/feed" replace />} />

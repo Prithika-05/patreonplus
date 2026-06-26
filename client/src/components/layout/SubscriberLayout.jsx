@@ -1,7 +1,15 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Home, CreditCard, Search, Bell, Menu } from 'lucide-react';
+import {
+  LogOut,
+  Home,
+  CreditCard,
+  Search,
+  Bell,
+  Menu,
+  UserCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SubscriberLayout = () => {
@@ -10,9 +18,26 @@ const SubscriberLayout = () => {
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/subscriber/feed', label: 'Home Feed', icon: Home },
-    { path: '/subscriber/explore', label: 'Explore Creators', icon: Search },
-    { path: '/subscriber/subscriptions', label: 'My Subscriptions', icon: CreditCard },
+    {
+      path: "/subscriber/feed",
+      label: "Home Feed",
+      icon: Home,
+    },
+    {
+      path: "/subscriber/explore",
+      label: "Explore Creators",
+      icon: Search,
+    },
+    {
+      path: "/subscriber/subscriptions",
+      label: "My Subscriptions",
+      icon: CreditCard,
+    },
+    {
+      path: "/subscriber/profile",
+      label: "My Profile",
+      icon: UserCircle,
+    },
   ];
 
   const handleLogout = () => {
