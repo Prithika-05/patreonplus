@@ -1,6 +1,8 @@
 const User = require("./user.model");
 const Tier = require("../tiers/tier.model");
-const { Op } = require("sequelize");
+
+const { Op, literal } = require("sequelize");
+
 const AppError = require("../../utils/AppError");
 
 const searchUsers = async (query) => {
@@ -10,8 +12,15 @@ const searchUsers = async (query) => {
     role: "creator",
   };
 
-  const options = {
+  if (!isEmptyQuery) {
+    whereClause.username = {
+      [Op.like]: `%${query.trim()}%`,
+    };
+  }
+
+  const creators = await User.findAll({
     where: whereClause,
+
     attributes: [
       "id",
       "name",
@@ -20,19 +29,31 @@ const searchUsers = async (query) => {
       "bio",
       "profileImage",
       "createdAt",
+      [
+        literal(`(
+          SELECT COUNT(*)
+          FROM subscriptions
+          WHERE subscriptions."creatorId" = "User"."id"
+          AND subscriptions.status = 'active'
+        )`),
+        "subscriberCount",
+      ],
     ],
-    order: [["createdAt", "DESC"]],
-  };
 
-  if (!isEmptyQuery) {
-    whereClause.username = {
-      [Op.like]: `%${query.trim()}%`,
-    };
-  } else {
-    options.limit = 5;
-  }
+    order: [
+      [literal('"subscriberCount"'), "DESC"],
+      ["createdAt", "DESC"],
+    ],
 
-  return await User.findAll(options);
+    limit: isEmptyQuery ? 5 : undefined,
+
+    raw: true,
+  });
+
+  return creators.map((creator) => ({
+    ...creator,
+    subscriberCount: Number(creator.subscriberCount),
+  }));
 };
 
 const getPublicProfile = async (username) => {
