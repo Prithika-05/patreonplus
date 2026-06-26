@@ -134,12 +134,13 @@ const Contents = () => {
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger aschild="true">
-            <button className="inline-flex shrink-0 items-center justify-center rounded-md font-medium text-sm transition-colors bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 h-9 px-4 py-2 group">
-              <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
-              Add New Content
-            </button>
-          </DialogTrigger>
+          <Button
+            className="group"
+            onClick={() => setOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90" />
+            Add New Content
+          </Button>
 
 
 

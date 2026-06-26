@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { analyticsService } from "@/services/analytics.service";
-
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -327,21 +327,25 @@ const DashboardHome = () => {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          <Button asChild>
-            <a href="/creator/tiers">
+       <CardContent className="grid grid-cols-2 gap-4">
+          <Link className="w-full" to="/creator/tiers">
+            <Button
+              size="lg"
+              className="w-full"
+            >
               Create Tier
-            </a>
-          </Button>
+            </Button>
+          </Link>
 
-          <Button
-            asChild
-            variant="outline"
-          >
-            <a href="/creator/contents">
+          <Link className="w-full" to="/creator/contents">
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full"
+            >
               Upload Content
-            </a>
-          </Button>
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>
