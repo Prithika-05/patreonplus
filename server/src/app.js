@@ -19,6 +19,7 @@ const errorHandler = require("./middleware/errorHandler");
 const sanitize = require("./middleware/sanitize");
 const uploadRoutes = require("./modules/uploads/upload.routes");
 const contentCommentRoutes = require("./modules/contentComments/contentComment.routes");
+const contentViewRoutes = require("./modules/contentViews/contentView.routes");
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.post(
     }
 
     console.log("====================================");
-    console.log("📥 VALID STRIPE WEBHOOK PACKET RECEIVED");
+    console.log("VALID STRIPE WEBHOOK PACKET RECEIVED");
     console.log("Is Body a Buffer?:", Buffer.isBuffer(req.body));
     console.log("Body Length (Bytes):", req.body.length);
     console.log("====================================");
@@ -59,6 +60,7 @@ app.use("/tiers", tierRoutes);
 app.use("/contents", contentRoutes);
 app.use("/content-likes", contentLikeRoutes);
 app.use("/content-comments", contentCommentRoutes);
+app.use("/content-views", contentViewRoutes);
 app.use("/subscriptions",subscriptionRoutes)
 app.use("/users",userRoutes)
 app.use( "/payments", paymentRoutes);

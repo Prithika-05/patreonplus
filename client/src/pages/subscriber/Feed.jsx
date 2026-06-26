@@ -346,19 +346,28 @@ const Feed = () => {
                             {content.comments?.length || 0}
                           </Button>
                         </div>
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          onClick={async () => {
+                            try {
+                              await contentService.recordView({
+                                contentId: content.id,
+                                creatorId: content.creator.id,
+                                watchDuration: 0,
+                                completed: false,
+                                source: "feed",
+                              });
 
-                        <a
-                          href={content.previewUrl}
-                          target="_blank"
-                          rel="noreferrer"
+                              window.open(content.previewUrl, "_blank");
+                            } catch (err) {
+                              console.error("Failed to record view", err);
+                              window.open(content.previewUrl, "_blank");
+                            }
+                          }}
                         >
-                          <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            View Content
-                          </Button>
-                        </a>
+                          View Content
+                        </Button>     
 
                       </div>
 

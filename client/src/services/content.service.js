@@ -26,6 +26,11 @@ export const contentService = {
     return response.data;
   },
 
+  recordView: async (data) => {
+    const response = await api.post("/content-views", data);
+    return response.data;
+  },
+
   toggleLike: async (contentId) => {
     const response = await api.post(
       `/content-likes/${contentId}/toggle`
