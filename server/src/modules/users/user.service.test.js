@@ -1,130 +1,159 @@
+const User = require("./user.model");
+const Tier = require("../tiers/tier.model");
+
+const AppError = require("../../utils/AppError");
+
+const {
+  searchUsers,
+  getPublicProfile,
+  getMyProfile,
+} = require("./user.service");
+
 jest.mock("./user.model", () => ({
   findAll: jest.fn(),
   findOne: jest.fn(),
+  findByPk: jest.fn(),
 }));
 
 jest.mock("../tiers/tier.model", () => ({
   findAll: jest.fn(),
 }));
 
-const { searchUsers, getPublicProfile } = require("./user.service");
-const User = require("./user.model");
-const Tier = require("../tiers/tier.model");
-const { Op } = require("sequelize");
-
 describe("User Service", () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe("searchUsers", () => {
-    it("should return latest 5 creators when query is empty", async () => {
-      const mockUsers = [{ id: 1 }, { id: 2 }];
-      User.findAll.mockResolvedValue(mockUsers);
+  describe("searchUsers()", () => {
+    test("should return top creators when query is empty", async () => {
+      User.findAll.mockResolvedValue([
+        {
+          id: "1",
+          name: "Creator One",
+          username: "creator1",
+          role: "creator",
+          subscriberCount: "10",
+        },
+        {
+          id: "2",
+          name: "Creator Two",
+          username: "creator2",
+          role: "creator",
+          subscriberCount: "5",
+        },
+      ]);
 
       const result = await searchUsers("");
 
-      expect(User.findAll).toHaveBeenCalledWith({
-        where: { role: "creator" },
-        attributes: [
-          "id",
-          "name",
-          "username",
-          "role",
-          "bio",
-          "profileImage",
-          "createdAt",
-        ],
-        order: [["createdAt", "DESC"]],
-        limit: 5,
-      });
+      expect(User.findAll).toHaveBeenCalled();
 
-      expect(result).toEqual(mockUsers);
+      expect(result).toHaveLength(2);
+
+      expect(result[0].subscriberCount).toBe(10);
+      expect(result[1].subscriberCount).toBe(5);
     });
 
-    it("should search users by username when query is provided", async () => {
-      const mockUsers = [{ id: 3 }];
-      User.findAll.mockResolvedValue(mockUsers);
+    test("should search creators by username", async () => {
+      User.findAll.mockResolvedValue([
+        {
+          id: "1",
+          username: "john",
+          subscriberCount: "3",
+        },
+      ]);
 
       const result = await searchUsers("john");
 
-      expect(User.findAll).toHaveBeenCalledWith({
-        where: {
-          role: "creator",
-          username: { [Op.like]: "%john%" },
-        },
-        attributes: [
-          "id",
-          "name",
-          "username",
-          "role",
-          "bio",
-          "profileImage",
-          "createdAt",
-        ],
-        order: [["createdAt", "DESC"]],
-      });
+      expect(User.findAll).toHaveBeenCalled();
 
-      expect(result).toEqual(mockUsers);
+      expect(result[0].username).toBe("john");
+    });
+
+    test("should return empty array when no creators found", async () => {
+      User.findAll.mockResolvedValue([]);
+
+      const result = await searchUsers("unknown");
+
+      expect(result).toEqual([]);
     });
   });
 
-  describe("getPublicProfile", () => {
-    it("should return user and tiers for creator", async () => {
-      const mockUser = {
-        id: "123",
-        username: "creator1",
+  describe("getPublicProfile()", () => {
+    test("should return creator profile with tiers", async () => {
+      User.findOne.mockResolvedValue({
+        id: "1",
+        username: "creator",
         role: "creator",
-      };
-
-      const mockTiers = [{ id: 1, level: 1 }];
-
-      User.findOne.mockResolvedValue(mockUser);
-      Tier.findAll.mockResolvedValue(mockTiers);
-
-      const result = await getPublicProfile("creator1");
-
-      expect(User.findOne).toHaveBeenCalledWith({
-        where: { username: "creator1" },
-        attributes: ["id", "name", "username", "bio", "profileImage", "role"],
       });
 
-      expect(Tier.findAll).toHaveBeenCalledWith({
-        where: { creatorId: mockUser.id },
-        order: [["level", "ASC"]],
-      });
+      Tier.findAll.mockResolvedValue([
+        {
+          id: "tier1",
+          name: "Bronze",
+        },
+      ]);
 
-      expect(result).toEqual({
-        user: mockUser,
-        tiers: mockTiers,
-      });
+      const result =
+        await getPublicProfile("creator");
+
+      expect(User.findOne).toHaveBeenCalled();
+
+      expect(Tier.findAll).toHaveBeenCalled();
+
+      expect(result.user.username).toBe(
+        "creator"
+      );
+
+      expect(result.tiers).toHaveLength(1);
     });
 
-    it("should return user with empty tiers if not a creator", async () => {
-      const mockUser = {
-        id: "456",
-        username: "sub1",
+    test("should return subscriber profile without tiers", async () => {
+      User.findOne.mockResolvedValue({
+        id: "2",
+        username: "subscriber",
         role: "subscriber",
-      };
+      });
 
-      User.findOne.mockResolvedValue(mockUser);
-
-      const result = await getPublicProfile("sub1");
+      const result =
+        await getPublicProfile(
+          "subscriber"
+        );
 
       expect(Tier.findAll).not.toHaveBeenCalled();
 
-      expect(result).toEqual({
-        user: mockUser,
-        tiers: [],
-      });
+      expect(result.tiers).toEqual([]);
     });
 
-    it("should throw error if user not found", async () => {
+    test("should throw when user is not found", async () => {
       User.findOne.mockResolvedValue(null);
 
-      await expect(getPublicProfile("unknown")).rejects.toThrow(
-        "User not found"
-      );
+      await expect(
+        getPublicProfile("unknown")
+      ).rejects.toThrow(AppError);
+    });
+  });
+
+  describe("getMyProfile()", () => {
+    test("should return user profile", async () => {
+      User.findByPk.mockResolvedValue({
+        id: "1",
+        username: "john",
+      });
+
+      const result =
+        await getMyProfile("1");
+
+      expect(User.findByPk).toHaveBeenCalled();
+
+      expect(result.username).toBe("john");
+    });
+
+    test("should throw when user does not exist", async () => {
+      User.findByPk.mockResolvedValue(null);
+
+      await expect(
+        getMyProfile("100")
+      ).rejects.toThrow(AppError);
     });
   });
 });

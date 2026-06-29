@@ -4,11 +4,23 @@ const jwt = require("jsonwebtoken");
 const { hashPassword, comparePassword } = require("../../utils/password");
 const AppError = require("../../utils/AppError");
 const { randomUUID } = require("crypto");
+const { Op } = require("sequelize");
 
 const signup = async (data) => {
-  const existingUser = await User.findOne({ where: { email: data.email } });
+  const existingUser = await User.findOne({
+    where: {
+      [Op.or]: [
+        { email: data.email },
+        { username: data.username },
+      ],
+    },
+  });
+
   if (existingUser) {
-    throw new AppError("User already exists", 409);
+    throw new AppError(
+      "User already exists",
+      409
+    );
   }
   const hashedPassword = await hashPassword(data.password);
   const user = await User.create({
