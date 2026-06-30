@@ -38,6 +38,7 @@ const createContent = async (data, creatorId) => {
     description: data.description,
     fileKey: data.fileKey,
     tierId: data.tierId,
+    previewUrl: data.previewUrl,
     creatorId,
   });
 

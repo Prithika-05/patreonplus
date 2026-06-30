@@ -306,11 +306,11 @@ return ( <div className="flex min-h-screen w-full items-center justify-center bg
 
             <SelectContent>
               <SelectItem value="subscriber">
-                Subscriber (View Content)
+                Subscriber
               </SelectItem>
 
               <SelectItem value="creator">
-                Creator (Publish Content)
+                Creator
               </SelectItem>
             </SelectContent>
           </Select>

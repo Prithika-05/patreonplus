@@ -21,6 +21,7 @@ const Contents = () => {
     description: '',
     fileKey: '',
     tierId: '',
+    previewUrl: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -54,7 +55,7 @@ const Contents = () => {
       queryClient.invalidateQueries({ queryKey: ['contents'] });
       toast.success('Content published successfully!');
       setOpen(false);
-      setFormData({ title: '', description: '', fileKey: '', tierId: '' });
+      setFormData({ title: '', description: '', fileKey: '', tierId: '', previewUrl: '' });
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to create content'),
   });
@@ -75,8 +76,8 @@ const Contents = () => {
       title: formData.title,
       description: formData.description,
       fileKey: formData.fileKey,
-      previewUrl: formData.previewUrl,
-      tierId: formData.tierId
+      tierId: formData.tierId,
+      previewUrl: formData.previewUrl
     });
 
     if (!validation.success) {
@@ -97,8 +98,8 @@ const Contents = () => {
       title: formData.title,
       description: formData.description,
       fileKey: formData.fileKey,
+      tierId: formData.tierId,
       previewUrl: formData.previewUrl,
-      tierId: formData.tierId
 
     });
   };
@@ -219,11 +220,12 @@ const Contents = () => {
 
                           const uploadResult = await uploadFile(selectedFile);
 
-                          const { key } = uploadResult.data;
+                          const { key, url } = uploadResult.data;
 
                           setFormData({
                             ...formData,
                             fileKey: key,
+                            previewUrl: url,
                           });
 
                           toast.success("Media uploaded successfully!", { id: "s3-upload" });
@@ -247,33 +249,33 @@ const Contents = () => {
                 <div className="space-y-2 col-span-2">
                   <Label htmlFor="tier" className="text-sm font-semibold">Access Level</Label>
                   <Select
-                  value={formData.tierId}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, tierId: val })
-                  }
-                  required
-                >
-                  <SelectTrigger>
-                    <span className="truncate">
-                      {selectedTier
-                        ? `${selectedTier.name} ($${selectedTier.price})`
-                        : "Select who can view this"}
-                    </span>
-                  </SelectTrigger>
+                    value={formData.tierId}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, tierId: val })
+                    }
+                    required
+                  >
+                    <SelectTrigger>
+                      <span className="truncate">
+                        {selectedTier
+                          ? `${selectedTier.name} ($${selectedTier.price})`
+                          : "Select who can view this"}
+                      </span>
+                    </SelectTrigger>
 
-                  <SelectContent>
-                    {tiers?.map((tier) => (
-                      <SelectItem key={tier.id} value={tier.id}>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{tier.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            (${tier.price})
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectContent>
+                      {tiers?.map((tier) => (
+                        <SelectItem key={tier.id} value={tier.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{tier.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              (${tier.price})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.tierId && (
                     <p className="text-sm text-destructive mt-1">
                       {errors.tierId}
