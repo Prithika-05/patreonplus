@@ -1,262 +1,849 @@
-# Introduction
-Patreon+ is a modern, full-stack creator subscription platform designed to streamline the relationship between content creators and their audiences. The system enables creators to publish exclusive content, define customizable membership tiers with time-bound access, and track subscriber engagement. Subscribers can discover creators, subscribe to specific tiers, and consume time-unlocked content through an intuitive, role-based interface.
+# PatreonPlus
 
-## Access URL of application
-http://54.154.142.197/
+> A modern full-stack creator subscription platform that empowers creators to monetize exclusive content through secure subscription plans, recurring payments, and advanced analytics.
 
-# Patreon Docs - Backend
-A robust, Node.js/Express backend for a creator subscription platform. The system enables creators to publish exclusive content, manage subscription tiers with custom pricing and access durations, and track subscribers. Subscribers can discover creators, subscribe to specific tiers, and access time-unlocked content. Built with a clean MVC-inspired architecture, JWT-based authentication, and PostgreSQL via Sequelize ORM.
+---
 
-## Tech Stack
-- Runtime: Node.js
-- Framework: Express.js
-- Database: PostgreSQL
-- ORM: Sequelize
-- Authentication: JSON Web Tokens (JWT) + bcrypt
-- Utilities: cors, dotenv, nodemon
+# Project Overview
 
-## Prerequisites
-    - Installation & Setup
-        - npm install
-    - Environment Variables
-        - Create a .env file in the root directory
-    - Clone & Navigate
-        - git clone <your-repo-url>
-        - cd server
-    - Run the Development Server
-        - npm run dev
+PatreonPlus is a modern subscription-based web platform inspired by Patreon, designed to enable creators to publish premium content while allowing subscribers to access exclusive resources through recurring subscription plans.
 
-## Step 1
-- Authentication & Authorization
+The application follows a scalable three-tier architecture consisting of a React frontend, Express.js backend, and PostgreSQL database. It integrates third-party cloud services such as Stripe for subscription billing and Amazon S3 for secure media storage, providing a production-ready full-stack solution.
 
-        - JWT-based Auth: Users receive a signed token on login containing id and role
-        - Middleware Pipeline:
-            authenticate -> Verifies token, attaches req.user, handles expired/invalid tokens.
-            authorizeRole -> Restricts route access to specific roles (creator or subscriber).
-        - Password Security: All passwords are hashed with bcrypt before storage and verified securely during login.
+The project was developed using contemporary software engineering principles including modular architecture, RESTful APIs, role-based authentication, reusable components, secure coding practices, automated testing, and cloud integration.
 
-## Step 2
-- Database & ORM
+Unlike traditional content-sharing platforms, PatreonPlus focuses on creating a secure ecosystem where creators have complete control over their subscription tiers, premium content, and subscriber engagement while maintaining a seamless user experience across desktop and mobile devices.
 
-        - Sequelize manages PostgreSQL connections and model relationships.
-        - Auto-Sync: sequelize.sync() on startup ensures schema matches models.
+---
 
-## Step 3
-- Routing
+# Business Problem
 
-        - server.js
-            Application entry point. Loads .env variables, imports all Sequelize models, authenticates the DB connection, runs sequelize.sync(), and starts the HTTP server.
-        - app.js
-            Express configuration. Sets up global middleware (cors, express.json()), mounts all module routers to their base paths (/auth, /tiers, etc.), and defines a health-check route (/).
-        - config/database.js
-            Database setup. Initializes a Sequelize instance using PostgreSQL credentials from .env. Exports the connection for use across all models.
-        - utils/password.js
-            Security utility. Contains hashPassword() and comparePassword() wrappers around bcrypt for secure password handling.
-    
-## Step 4
-    - modules/auth/
-        - auth.routes.js : public endpoints /signup and /login.
-        - auth.controller.js : Extracts request body, calls auth service, returns formatted JSON responses.
-        - auth.service.js
-            - Signup: Checks for existing email, hashes password, creates user.
-            - Login: Validates credentials, generates signed JWT with id & role.
-        - auth.middleware.js
-            - authenticate: Verifies Bearer token, decodes JWT, attaches req.user.
-            - authorizeRole(...roles): Blocks access if req.user.role isn't in the allowed list. (Imported globally by other modules)
+Digital creators increasingly rely on online platforms to generate recurring revenue from their audiences. However, many existing platforms provide limited customization, expensive service fees, or lack flexibility for managing premium content and subscriptions.
 
-## Step 5 
-    - modules/users/
-        - user.model.js: Defines User schema (id, name, username, email, password, role, bio, profileImage).
-        -user.routes.js: Defines /search and /profile/:username.
-        - user.controller.js: Handles search/profile requests and error mapping.
-        - user.service.js
-            - Search: Filters role='creator', uses Op.like for username matching.
-            - Profile: Fetches user + associated tiers ordered by level.
+Creators often require a centralized platform that allows them to:
 
-## Step 6
-    - modules/tiers/
-        - tier.model.js: Defines Tier schema (name, price, unlockDuration, level, creatorId). Associates with User. Enforces unique (creatorId, level) index.
-        - tier.routes.js: CRUD + /reorder endpoints. Protected: authenticate + authorizeRole('creator').
-        - tier.controller.js: Passes req.user.id as creatorId to service layer.
-        - tier.service.js
-            -Auto-leveling: Assigns next available level on creation.
-            - Ownership checks: Prevents creators from editing/deleting others' tiers.
-            - Reordering: Batch updates level for multiple tiers.
-        
-## Step 7
-    - modules/contents/
-        - content.model.js: Defines Content schema (title, description, fileUrl, creatorId, tierId). Associates with User and Tier.
-        - content.routes.js: CRUD endpoints. Protected: authenticate + authorizeRole('creator').
-        - content.controller.js: content.controller.js
-        - content.service.js
-            - Ensures tierId exists and belongs to the requesting creator before create/update.
-            - Verifies creatorId === userId on read/delete operations.
+- Publish premium content securely
+- Manage multiple subscription tiers
+- Process recurring subscription payments
+- Store uploaded media safely
+- Analyse subscriber growth and revenue
+- Control access to exclusive resources
 
-## Step 8
-    - modules/subscriptions/
-        - subscription.model.js: Defines Subscription schema (startDate, endDate, status, subscriberId, creatorId, tierId). 
-        - subscription.routes.js: /subscribe, /my-subscriptions, /cancel/:id. Protected: authenticate + authorizeRole('subscriber').
-        - subscription.controller.js: Extracts tierId or subscription id, forwards to service.
-        - subscription.service.js
-            - Subscribe: Calculates endDate = now + tier.unlockDuration (days). If active subscription exists, updates it; otherwise creates new.
-            - My Subscriptions: Fetches with included tier and creator data.
-            - Cancel: Sets status='cancelled' after verifying ownership.
+Subscribers also expect a modern platform where they can easily discover creators, subscribe to membership plans, access premium content, and manage billing without unnecessary complexity.
 
-# Patreon Docs - Frontend
-A modern, full-stack platform connecting creators with subscribers, featuring a vibrant design system, real-time analytics, and secure membership management.
+---
 
-## Tech Stack
-- Frontend: React 18 + Vite
-- Language: JavaScript (ES6+)
-- Styling: Tailwind CSS v4 (Custom Theme)
-- UI Components: shadcn/ui (Radix Primitives)
-- State Management: TanStack Query (React Query)
-- Routing: React Router DOM v6
-- Animations: Framer Motion
-- Icons: Lucide React
-- Notifications: Sonner
+# Solution Overview
 
-## Prerequisites
-    - Installation & Setup
-        - npm install
-    - Environment Variables
-        - Create a .env file in the root directory and add your backend API URL
-    - Run the Development Server
-        - npm run dev
+PatreonPlus addresses these challenges by providing a comprehensive creator subscription platform that combines content management, secure authentication, subscription billing, analytics, and cloud storage into a single web application.
 
-## Step 1
--Routing
-        - src/App.js
-            - The root component that sets up routing.
-            - Defines routes (/login, /creator/*, /subscriber/*).
-            - Wraps protected routes with logic to check AuthContext.
-            - Redirects users to the correct landing page based on their role.
-        
-        - src/main.jsx
-            - Renders <App/>.
-            - Wraps the app in QueryClientProvider (for TanStack Query) and AuthContextProvider.
-            - Imports index.css to apply global styles.
+The platform supports two primary user roles:
 
-## Step 2
-- UI Components
+### Creator
 
-        - src/components/ui/
-            - These are atomic, accessible components built on top of Radix UI and styled with Tailwind. They consume the CSS variables from index.css.
+Creators can:
 
-            - button.jsx: Renders interactive buttons with variants (default, destructive, outline, ghost, secondary). Handles loading states and icons.
-            - card.jsx: A container with header, content, and footer sections. Used for dashboards, feed posts, and tier cards.
-            - input.jsx / label.jsx: Styled form inputs with focus rings matching the theme color.
-            - dialog.jsx: Accessible modal/popover component used for "Create Tier" or "Edit Profile" forms.
-            - avatar.jsx: Displays user images with fallback initials. Includes gradient styling logic.
-            - badge.jsx: Small status indicators (e.g., "Active", "Level 1").
-            - table.jsx: Structured data display for lists like "Recent Subscriptions".
-            - select.jsx: Dropdown menus for selecting tiers or roles.
+- Create and manage subscription tiers
+- Upload premium content
+- Manage creator profiles
+- View subscriber statistics
+- Analyse revenue performance
+- Track platform activity
 
-## Step 3
--  Service Layer
+### Subscriber
 
-        - src/services/
-            - These files abstract API calls using axios (or fetch) and TanStack Query
-            - auth.service.js: Handles /login, /signup, and token management.
-            - tier.service.js: CRUD operations for membership tiers (getAllTiers, createTier, updateTier, deleteTier).
-            - content.service.js: Fetches feed content, uploads media, and manages creator posts.
-            - subscription.service.js: Handles subscribing to creators, canceling subscriptions, and fetching user subscription history.
-            - user.service.js: Fetches public profiles, searches creators, and updates user details.
-            - analytics.service.js: Retrieves dashboard statistics (revenue, active subs) for the Creator Dashboard.
+Subscribers can:
 
-## Step 4
-- Layout Modules
+- Register securely
+- Browse creators
+- Subscribe to membership plans
+- Access premium content
+- Manage active subscriptions
+- View billing information
 
-        - src/layouts/CreatorLayout.jsx
-            - Role: Creator Only
-            - Sidebar: Glass-morphism navigation with links to Dashboard, Tiers, and Content.
-            - Header: Sticky top bar with user profile and notifications.
-            - Main Area: Renders the specific page content via <Outlet />.
+The application separates presentation, business logic, and data persistence into independent layers, ensuring scalability and maintainability.
 
-        -src/layouts/SubscriberLayout.jsx
-            - Role: Subscriber Only
-            - Sidebar: Links to Feed, My Subscriptions, and Explore.
-            - Header: Search bar, notification bell, and user menu.
+---
 
-## Step 5
-- Authentication Pages
+# Project Objectives
 
-        - pages/Login.jsx
-            - Form for email/password.
-            - Redirects based on user role (Creator → Dashboard, Subscriber → Feed).
-        - pages/Signup.jsx
-            - Field form (Name, Username, Email, Password, Role).
-            - Includes a role selector (Creator vs. Subscriber).
+The primary objectives of PatreonPlus include:
 
-## Step 6
-- Creator Pages
+- Design and develop a production-ready full-stack web application.
+- Implement secure authentication using JSON Web Tokens (JWT).
+- Support role-based authorization for creators and subscribers.
+- Integrate Stripe for recurring subscription payments.
+- Store uploaded media securely using Amazon S3.
+- Develop responsive user interfaces using React.
+- Provide creators with analytical insights into platform performance.
+- Apply modern software engineering practices including modular architecture, reusable components, validation, automated testing, and cloud deployment.
 
-        - pages/DashboardHome.jsx
-            - Displays Revenue, Active Subs, Total Tiers, and Content count with animated counters.
-            - Recent Activity Table: Shows latest subscriber actions.
-            - Quick Actions: Cards linking to "Create Tier" or "Post Content".
+---
 
-        - pages/Tiers.jsx
-            - Displays membership tiers as pricing cards.
-            - A sophisticated form to Create/Edit tiers.
-            - Handles sorting, deletion confirmation, and optimistic UI updates.
+# Core Features
 
-        - pages/Contents.jsx
-            - Visual gallery of posts/videos.
-            - Form to add title, description, file URL, and assign access tiers.
+## Authentication
 
-## Step 7
-- Subscriber Pages
+- User Registration
+- Secure Login
+- JWT Authentication
+- Password Encryption
+- Protected Routes
+- Session Management
 
-        - pages/Feed.jsx:
-            - Infinite-scroll style list of content cards from subscribed creators.
-            - Interactions: Like, Comment, Share buttons (visual), and "View Content" action.
-        - pages/MySubscriptions.jsx:
-            - Lists all active/expired subscriptions.
-            - Progress bars showing time remaining, status badges, and creator avatars.
-            - Cancel subscription flow with confirmation.
-        - pages/Explorer.jsx:
-            - Search bar to find creators by name/niche.
-            - Creator Cards: Rich profile cards with bios and "View Profile" CTAs.
-            - Skeleton Loading: Smooth loading states while fetching data.
-        - pages/PublicProfile.jsx:
-            - Pricing table allowing subscribers to choose and buy a tier directly.
-            - Handles the subscription mutation and redirects to the subscriptions page upon success.
+---
 
-## Testing: User Service & Content Flow
+## Creator Dashboard
 
-## Backend Unit Tests: user.test.js
- Validate the business logic of user-related service functions in complete isolation from the database.
+Creators can:
 
-- Verifies that searching with an empty query returns the 5 most recent creators, while searching with a keyword filters users by username using partial matching.
-- Confirms that requesting a creator's profile returns both user details and their pricing tiers in ascending order, while requesting a non-creator returns only user details with an empty tiers list.
-- Ensures that requesting a non-existent user properly throws a "User not found" error.
+- Manage personal profiles
+- Create subscription tiers
+- Upload premium content
+- Edit published content
+- Track subscriber growth
+- Monitor revenue
+- View analytics dashboard
 
-## Frontend E2E Tests: content.e2e.spec.js
-Validate the complete user journey for content creation, from authentication through UI interaction to backend persistence and deletion.
-What Gets Tested:
-- User signup, login, and JWT token generation via API.
-- Creating a pricing tier that will be associated with content.
-- Injecting the authentication token into the browser before the application loads.
-- Opening the content modal, filling form fields, and selecting a tier from a dynamic dropdown.
-- Submitting the form and verifying the new content appears in the list.
-- Removing content and confirming it disappears from the UI.
-Testing Strategy:
-- Tests span API endpoints, authentication middleware, React components, and state management.
+---
 
-# Summary
-Patreon+ is a modular, production-ready Node.js/Express API built for a creator subscription platform. It empowers creators to design tiered membership plans, publish time-unlocked content, and manage subscriber access, while enabling subscribers to discover creators, purchase tiers, and consume exclusive material.The architecture follows a clean, service-layer pattern that strictly separates HTTP routing, business logic, and data access, ensuring high maintainability and testability.
+## Subscriber Dashboard
 
-# References
-- React : https://react.dev
-- Vite : https://vitejs.dev
-- shadcn/ui : https://ui.shadcn.com
-- TanStack Query : https://tanstack.com/query/latest
-- Framer Motion : https://www.framer.com/motion/
-- Sonner : https://sonner.emilkowal.ski
-- Lucid React : https://lucide.dev
-- Node.js : https://nodejs.org/en/docs
-- Express.js : https://expressjs.com
-- PostgreSQL : https://www.postgresql.org/docs
-- Sequelize : https://sequelize.org/docs/v6/
-- GitHub : https://docs.github.com
+Subscribers can:
+
+- Discover creators
+- Subscribe to premium plans
+- Access exclusive posts
+- View subscription history
+- Manage memberships
+- Update profile information
+
+---
+
+## Content Management
+
+The platform provides secure content management capabilities including:
+
+- Content publishing
+- Content editing
+- Media uploads
+- Premium content visibility
+- Tier-based access
+- Secure storage
+
+---
+
+## Subscription Management
+
+Subscription management includes:
+
+- Subscription plans
+- Membership tiers
+- Active subscriptions
+- Subscription cancellation
+- Renewal management
+- Billing status
+
+---
+
+## Analytics
+
+The analytics module provides creators with valuable business insights including:
+
+- Total subscribers
+- Revenue overview
+- Subscription statistics
+- User activity
+- Performance metrics
+- Dashboard visualizations
+
+---
+
+## Cloud Storage
+
+Amazon S3 is used to:
+
+- Store uploaded images
+- Store creator media
+- Generate secure file URLs
+- Deliver cloud-hosted assets
+- Improve storage scalability
+
+---
+
+## Payment Processing
+
+Stripe integration provides:
+
+- Secure Checkout
+- Subscription billing
+- Payment confirmation
+- Webhook processing
+- Billing lifecycle management
+
+---
+
+# Technology Stack
+
+## Frontend
+
+| Technology | Purpose |
+|------------|---------|
+| React | User Interface |
+| Vite | Development & Build Tool |
+| Tailwind CSS | Responsive Styling |
+| React Router | Client-side Routing |
+| React Query | Server State Management |
+| Axios | HTTP Client |
+| Zod | Form Validation |
+| Framer Motion | UI Animations |
+| Recharts | Analytics Visualization |
+
+---
+
+## Backend
+
+| Technology | Purpose |
+|------------|---------|
+| Node.js | JavaScript Runtime |
+| Express.js | REST API Framework |
+| Sequelize | ORM |
+| PostgreSQL | Relational Database |
+| JWT | Authentication |
+| bcrypt | Password Encryption |
+| Zod | Request Validation |
+
+---
+
+## Cloud Services
+
+| Service | Purpose |
+|----------|---------|
+| AWS S3 | Cloud File Storage |
+| Stripe | Subscription Payments |
+
+---
+
+## Development Tools
+
+| Tool | Purpose |
+|------|---------|
+| Docker | Containerization |
+| Git | Version Control |
+| GitHub | Source Code Management |
+| Jest | Unit Testing |
+| Playwright | End-to-End Testing |
+
+---
+
+# Software Architecture
+
+PatreonPlus follows a Three-Tier Architecture that separates the presentation layer, application layer, and data layer.
+
+```text
+                    Client Layer
+                React + Tailwind CSS
+                        │
+                REST API Requests
+                        │
+                        ▼
+             Application Layer
+          Node.js + Express.js API
+                        │
+        ┌───────────────┼────────────────┐
+        │               │                │
+        ▼               ▼                ▼
+ Authentication      Stripe API      AWS S3
+        │
+        ▼
+     PostgreSQL
+```
+
+### Architecture Benefits
+
+- Separation of concerns
+- Scalability
+- Maintainability
+- Improved testing
+- Better security
+- Modular development
+- Independent deployment
+
+---
+
+# System Workflow
+
+```text
+User
+ │
+ ▼
+React Application
+ │
+ ▼
+Axios HTTP Request
+ │
+ ▼
+Express REST API
+ │
+ ▼
+Authentication Middleware
+ │
+ ▼
+Business Logic
+ │
+ ├────────► PostgreSQL
+ │
+ ├────────► AWS S3
+ │
+ └────────► Stripe
+ │
+ ▼
+JSON Response
+ │
+ ▼
+React UI
+```
+
+The frontend communicates with the backend through RESTful APIs using Axios. Each request passes through authentication and validation middleware before reaching the business logic layer. Depending on the request, the backend interacts with PostgreSQL, AWS S3, or Stripe and returns a structured JSON response to the client.
+
+---
+
+# Project Structure
+
+```text
+PatreonPlus
+│
+├── client/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── validations/
+│   │   ├── utils/
+│   │   └── styles/
+│   └── package.json
+│
+├── server/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── validators/
+│   │   ├── utils/
+│   │   ├── uploads/
+│   │   └── tests/
+│   └── package.json
+│
+├── docker/
+├── .github/
+├── README.md
+└── docker-compose.yml
+```
+
+---
+
+# Frontend Architecture
+
+The frontend is developed using React with Vite and follows a component-based architecture. The application is organised into reusable modules to improve maintainability, readability, and scalability.
+
+| Directory | Description |
+|----------|-------------|
+| `assets` | Static resources including images, icons, and fonts. |
+| `components` | Reusable UI components shared across multiple pages. |
+| `pages` | Main application screens such as login, dashboard, subscriptions, analytics, and profile pages. |
+| `layouts` | Shared layouts used throughout the application. |
+| `routes` | Client-side routing configuration using React Router. |
+| `hooks` | Custom React hooks for reusable business logic. |
+| `services` | Axios-based API communication layer. |
+| `context` | Global application state such as authentication. |
+| `validations` | Zod schemas for client-side validation. |
+| `utils` | Utility functions and helper methods. |
+
+The frontend communicates exclusively through RESTful APIs and manages asynchronous server state using React Query, reducing unnecessary network requests and improving application performance.
+
+---
+
+# Backend Architecture
+
+The backend follows a modular Express.js architecture where each feature is separated into dedicated controllers, services, middleware, routes, and database models.
+
+Each module is responsible for a single business domain, improving maintainability and supporting future scalability.
+
+Major backend responsibilities include:
+
+- User authentication
+- Subscription management
+- Payment processing
+- Creator management
+- Content management
+- Analytics
+- File uploads
+- Validation
+- Error handling
+# Database Design
+
+PatreonPlus uses **PostgreSQL** as the primary relational database management system. The database is designed using a normalized schema to ensure data consistency, integrity, and efficient query performance.
+
+The application uses **Sequelize ORM** to manage database interactions, model relationships, migrations, and CRUD operations.
+
+## Core Database Entities
+
+| Entity | Description |
+|----------|-------------|
+| Users | Stores user account information, authentication details, and roles. |
+| Creator Profiles | Stores creator-specific information including biography, profile image, and creator settings. |
+| Subscription Tiers | Defines different membership plans offered by creators. |
+| Subscriptions | Tracks active subscriptions between subscribers and creators. |
+| Posts | Stores premium and public content created by creators. |
+| Media | Stores uploaded file metadata and AWS S3 object references. |
+| Payments | Maintains subscription payment records and transaction history. |
+| Analytics | Stores creator performance metrics and platform statistics. |
+
+## Database Relationships
+
+The database follows relational principles where:
+
+- One creator can create multiple subscription tiers.
+- One creator can publish multiple posts.
+- One subscriber can subscribe to multiple creators.
+- Each subscription is linked to a payment record.
+- Media assets are associated with creator content.
+- Analytics aggregate platform activities for reporting.
+
+This relational design minimizes data redundancy while supporting efficient retrieval of related information.
+
+---
+
+# Authentication & Authorization
+
+PatreonPlus implements a secure authentication mechanism using **JSON Web Tokens (JWT)** combined with **Role-Based Access Control (RBAC)**.
+
+## Authentication Flow
+
+```text
+User Login
+      │
+      ▼
+Validate Credentials
+      │
+      ▼
+Generate JWT Token
+      │
+      ▼
+Return Access Token
+      │
+      ▼
+Store Token on Client
+      │
+      ▼
+Authenticated Requests
+```
+
+## Authorization
+
+The platform supports role-based access using predefined user roles.
+
+### Creator
+
+Creators have permission to:
+
+- Manage subscription tiers
+- Upload premium content
+- Edit creator profiles
+- View analytics
+- Manage subscribers
+
+### Subscriber
+
+Subscribers can:
+
+- Browse creators
+- Purchase subscriptions
+- Access premium content
+- Manage active subscriptions
+- Update personal profiles
+
+Protected API endpoints validate the authenticated user's role before executing business logic, ensuring users can only perform actions relevant to their permissions.
+
+---
+
+# External Integrations
+
+## Stripe Integration
+
+Stripe is integrated to provide secure recurring subscription payments.
+
+### Features
+
+- Secure Checkout
+- Subscription Creation
+- Billing Management
+- Payment Confirmation
+- Webhook Processing
+- Subscription Status Tracking
+
+### Payment Workflow
+
+```text
+Subscriber
+      │
+      ▼
+Select Subscription Tier
+      │
+      ▼
+Stripe Checkout
+      │
+      ▼
+Payment Successful
+      │
+      ▼
+Webhook Event
+      │
+      ▼
+Update Subscription
+      │
+      ▼
+Grant Premium Access
+```
+
+Stripe handles sensitive payment information, ensuring compliance with industry-standard security practices while simplifying recurring billing management.
+
+---
+
+## Amazon S3 Integration
+
+Amazon S3 is used to securely store user-uploaded media assets.
+
+### Storage Workflow
+
+```text
+Creator Uploads Media
+          │
+          ▼
+Backend Validation
+          │
+          ▼
+Upload to AWS S3
+          │
+          ▼
+Store Object URL
+          │
+          ▼
+Retrieve Asset
+```
+
+### Benefits
+
+- Scalable cloud storage
+- Secure media hosting
+- Reduced backend storage requirements
+- Faster content delivery
+- High availability
+
+---
+
+# REST API Overview
+
+The backend exposes RESTful endpoints that facilitate communication between the frontend and server.
+
+## Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/register` | Register a new user |
+| POST | `/auth/login` | Authenticate user |
+| POST | `/auth/logout` | Logout user |
+
+---
+
+## User
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/users/profile` | Retrieve user profile |
+| PUT | `/users/profile` | Update profile |
+
+---
+
+## Creator
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/creator/dashboard` | Retrieve creator dashboard |
+| POST | `/creator/tier` | Create subscription tier |
+| PUT | `/creator/tier/:id` | Update subscription tier |
+| DELETE | `/creator/tier/:id` | Delete subscription tier |
+
+---
+
+## Content
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/posts` | Publish content |
+| GET | `/posts` | Retrieve posts |
+| PUT | `/posts/:id` | Update content |
+| DELETE | `/posts/:id` | Delete content |
+
+---
+
+## Subscription
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/subscriptions` | Create subscription |
+| DELETE | `/subscriptions/:id` | Cancel subscription |
+| GET | `/subscriptions` | Retrieve subscriptions |
+
+---
+
+## Uploads
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/uploads` | Upload media |
+| GET | `/uploads/:id` | Retrieve media |
+
+---
+
+## Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/analytics` | Retrieve creator analytics |
+
+---
+
+# Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/Prithika-05/patreonplus.git
+```
+
+## Backend Installation
+
+```bash
+cd server
+npm install
+```
+
+## Frontend Installation
+
+```bash
+cd ../client
+npm install
+```
+
+---
+
+# Environment Variables
+
+Create a `.env` file in both the client and server directories.
+
+### Server
+
+```env
+PORT=
+DATABASE_URL=
+JWT_SECRET=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_REGION=
+AWS_BUCKET_NAME=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+### Client
+
+```env
+VITE_API_URL=
+VITE_STRIPE_PUBLISHABLE_KEY=
+```
+
+---
+
+# Running the Application
+
+## Start Backend
+
+```bash
+cd server
+npm run dev
+```
+
+## Start Frontend
+
+```bash
+cd client
+npm run dev
+```
+
+The frontend will communicate with the backend through REST APIs, allowing users to access authentication, subscriptions, analytics, and content management features.
+
+---
+# Testing
+
+PatreonPlus follows a comprehensive testing strategy to ensure the reliability, stability, and correctness of both the frontend and backend components. The project incorporates automated testing at multiple levels, including unit, integration, and end-to-end testing.
+
+## Testing Frameworks
+
+| Framework | Testing Type | Purpose |
+|-----------|--------------|---------|
+| Jest | Unit Testing | Validates individual functions, business logic, and utility modules. |
+| Playwright | Integration Testing | Verifies interactions between application components, APIs, and services. |
+| Playwright | End-to-End (E2E) Testing | Simulates real user workflows across the complete application in a browser environment. |
+
+---
+
+## Unit Testing (Jest)
+
+Jest is used to validate isolated components of the application, ensuring that individual functions, services, and utility modules behave as expected.
+
+Typical unit tests include:
+
+- Utility functions
+- Business logic
+- Validation logic
+- Service methods
+- Helper functions
+
+Run unit tests using:
+
+```bash
+npm test
+```
+
+---
+
+## Integration Testing (Playwright)
+
+Playwright is used to verify that different application components work together correctly. Integration tests validate communication between the frontend, backend, APIs, authentication mechanisms, and database interactions.
+
+Integration testing covers scenarios such as:
+
+- User authentication with backend APIs
+- Content creation and retrieval
+- Subscription workflow
+- API response validation
+- Form submission and validation
+- Dashboard data rendering
+
+---
+
+## End-to-End Testing (Playwright)
+
+Playwright also performs end-to-end testing by simulating real user interactions in supported browsers. These tests validate complete application workflows from the user's perspective.
+
+Typical end-to-end scenarios include:
+
+- User registration
+- User login
+- Creator dashboard navigation
+- Subscription purchase
+- Premium content access
+- Media uploads
+- Analytics dashboard navigation
+- User logout
+
+Run Playwright tests using:
+
+```bash
+npx playwright test
+```
+
+---
+
+## Testing Strategy
+
+The testing strategy ensures that:
+
+- Individual modules function correctly through unit testing.
+- Integrated application components communicate as expected.
+- Complete user workflows operate successfully in a production-like environment.
+- Application updates do not introduce regressions.
+- Core business functionality remains reliable during continuous development.
+
+This layered testing approach improves software quality, increases confidence during deployment, and supports long-term maintainability.
+---
+
+# Security Features
+
+PatreonPlus incorporates multiple security mechanisms to protect user data and application resources.
+
+- JSON Web Token (JWT) Authentication
+- Role-Based Access Control (RBAC)
+- Password Hashing using bcrypt
+- Input Validation using Zod
+- Protected API Routes
+- Secure Environment Variable Management
+- Centralized Error Handling
+- Secure File Upload Validation
+- CORS Configuration
+- SQL Injection Mitigation through Sequelize ORM
+
+---
+
+# Deployment
+
+The application is designed for deployment using modern cloud technologies.
+
+| Component | Deployment |
+|------------|------------|
+| Frontend | Vercel / Docker |
+| Backend | Render / Railway / Docker |
+| Database | PostgreSQL |
+| Storage | Amazon S3 |
+| Payments | Stripe |
+
+Docker support enables consistent deployment across development, staging, and production environments.
+
+---
+
+# Contributing
+
+Contributions are welcome. To contribute:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Push to your branch.
+5. Submit a Pull Request for review.
+
+Please ensure all new features include appropriate documentation and tests where applicable.
+
+---
+
+# License
+
+This project is intended for academic and educational purposes.
+
+---
+
+# Author
+
+**Prithika**
+
+Master of Science in Computing  
+National College of Ireland
+
+GitHub: https://github.com/Prithika-05
+
+---
+
+## Acknowledgements
+
+This project was developed using several open-source technologies and services, including React, Node.js, Express.js, PostgreSQL, Sequelize, Tailwind CSS, Stripe, Amazon Web Services (AWS), Docker, Jest, Playwright, and other community-maintained libraries that contributed to the successful implementation of the application.
+
+---
