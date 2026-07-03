@@ -697,40 +697,136 @@ The frontend will communicate with the backend through REST APIs, allowing users
 
 PatreonPlus follows a comprehensive testing strategy to ensure the reliability, stability, and correctness of both the frontend and backend components. The project incorporates automated testing at multiple levels, including unit, integration, and end-to-end testing.
 
-## Testing: User Service & Content Flow
+## Testing Frameworks
 
-## Backend Unit Tests: user.test.js
- Validate the business logic of user-related service functions in complete isolation from the database.
+| Framework | Testing Type | Purpose |
+|-----------|--------------|---------|
+| Jest | Unit Testing | Validates individual functions, business logic, and utility modules. |
+| Playwright | Integration Testing | Verifies interactions between application components, APIs, and services. |
+| Playwright | End-to-End (E2E) Testing | Simulates real user workflows across the complete application in a browser environment. |
 
-- Verifies that searching with an empty query returns the 5 most recent creators, while searching with a keyword filters users by username using partial matching.
-- Confirms that requesting a creator's profile returns both user details and their pricing tiers in ascending order, while requesting a non-creator returns only user details with an empty tiers list.
-- Ensures that requesting a non-existent user properly throws a "User not found" error.
+---
 
-## Frontend E2E Tests: content.e2e.spec.js
-Validate the complete user journey for content creation, from authentication through UI interaction to backend persistence and deletion.
-What Gets Tested:
-- User signup, login, and JWT token generation via API.
-- Creating a pricing tier that will be associated with content.
-- Injecting the authentication token into the browser before the application loads.
-- Opening the content modal, filling form fields, and selecting a tier from a dynamic dropdown.
-- Submitting the form and verifying the new content appears in the list.
-- Removing content and confirming it disappears from the UI.
-Testing Strategy:
-- Tests span API endpoints, authentication middleware, React components, and state management.
+## Unit Testing (Jest)
 
-# Summary
-Patreon+ is a modular, production-ready Node.js/Express API built for a creator subscription platform. It empowers creators to design tiered membership plans, publish time-unlocked content, and manage subscriber access, while enabling subscribers to discover creators, purchase tiers, and consume exclusive material.The architecture follows a clean, service-layer pattern that strictly separates HTTP routing, business logic, and data access, ensuring high maintainability and testability.
+Jest is used to validate isolated components of the application, ensuring that individual functions, services, and utility modules behave as expected.
 
-# References
-- React : https://react.dev
-- Vite : https://vitejs.dev
-- shadcn/ui : https://ui.shadcn.com
-- TanStack Query : https://tanstack.com/query/latest
-- Framer Motion : https://www.framer.com/motion/
-- Sonner : https://sonner.emilkowal.ski
-- Lucid React : https://lucide.dev
-- Node.js : https://nodejs.org/en/docs
-- Express.js : https://expressjs.com
-- PostgreSQL : https://www.postgresql.org/docs
-- Sequelize : https://sequelize.org/docs/v6/
-- GitHub : https://docs.github.com
+Typical unit tests include:
+
+- Utility functions
+- Business logic
+- Validation logic
+- Service methods
+- Helper functions
+
+Run unit tests using:
+
+```bash
+npm test
+```
+
+---
+
+## Integration Testing (Playwright)
+
+Playwright is used to verify that different application components work together correctly. Integration tests validate communication between the frontend, backend, APIs, authentication mechanisms, and database interactions.
+
+Integration testing covers scenarios such as:
+
+- User authentication with backend APIs
+- Content creation and retrieval
+- Subscription workflow
+- API response validation
+- Form submission and validation
+- Dashboard data rendering
+
+---
+
+## End-to-End Testing (Playwright)
+
+Playwright also performs end-to-end testing by simulating real user interactions in supported browsers. These tests validate complete application workflows from the user's perspective.
+
+Typical end-to-end scenarios include:
+
+- User registration
+- User login
+- Creator dashboard navigation
+- Subscription purchase
+- Premium content access
+- Media uploads
+- Analytics dashboard navigation
+- User logout
+
+Run Playwright tests using:
+
+```bash
+npx playwright test
+```
+
+---
+
+## Testing Strategy
+
+The testing strategy ensures that:
+
+- Individual modules function correctly through unit testing.
+- Integrated application components communicate as expected.
+- Complete user workflows operate successfully in a production-like environment.
+- Application updates do not introduce regressions.
+- Core business functionality remains reliable during continuous development.
+
+This layered testing approach improves software quality, increases confidence during deployment, and supports long-term maintainability.
+---
+
+# Security Features
+
+PatreonPlus incorporates multiple security mechanisms to protect user data and application resources.
+
+- JSON Web Token (JWT) Authentication
+- Role-Based Access Control (RBAC)
+- Password Hashing using bcrypt
+- Input Validation using Zod
+- Protected API Routes
+- Secure Environment Variable Management
+- Centralized Error Handling
+- Secure File Upload Validation
+- CORS Configuration
+- SQL Injection Mitigation through Sequelize ORM
+
+---
+
+# Deployment
+
+The application is designed for deployment using modern cloud technologies.
+
+| Component | Deployment |
+|------------|------------|
+| Frontend | Vercel / Docker |
+| Backend | Render / Railway / Docker |
+| Database | PostgreSQL |
+| Storage | Amazon S3 |
+| Payments | Stripe |
+
+Docker support enables consistent deployment across development, staging, and production environments.
+
+---
+
+# License
+
+This project is intended for academic and educational purposes.
+
+---
+
+# Author
+
+**Prithika**
+
+GitHub: https://github.com/Prithika-05
+
+---
+
+## Acknowledgements
+
+This project was developed using several open-source technologies and services, including React, Node.js, Express.js, PostgreSQL, Sequelize, Tailwind CSS, Stripe, Amazon Web Services (AWS), Docker, Jest, Playwright, and other community-maintained libraries that contributed to the successful implementation of the application.
+
+---
