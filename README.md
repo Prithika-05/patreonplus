@@ -4,6 +4,13 @@
 
 ---
 
+# Project Access
+
+Patreon+ can be accessed using the following link:: http://54.75.35.156/
+
+
+---
+
 # Project Overview
 
 PatreonPlus is a modern subscription-based web platform inspired by Patreon, designed to enable creators to publish premium content while allowing subscribers to access exclusive resources through recurring subscription plans.
@@ -814,6 +821,55 @@ Docker support enables consistent deployment across development, staging, and pr
 # License
 
 This project is intended for academic and educational purposes.
+
+---
+# References
+
+Amazon Web Services (AWS) (2026) *Amazon Simple Storage Service (Amazon S3) Documentation*. Available at: https://docs.aws.amazon.com/s3/ (Accessed: 6 June 2026).
+
+Axios (2026) *Axios Documentation*. Available at: https://axios-http.com/docs/intro (Accessed: 16 June 2026).
+
+Docker Inc. (2026) *Docker Documentation*. Available at: https://docs.docker.com/ (Accessed: 15 June 2026).
+
+Express.js (2026) *Express.js Documentation*. Available at: https://expressjs.com/ (Accessed: 20 June 2026).
+
+Framer B.V. (2026) *Framer Motion Documentation*. Available at: https://motion.dev/ (Accessed: 25 June 2026).
+
+Git (2026) *Git Documentation*. Available at: https://git-scm.com/doc (Accessed: 6 June 2026).
+
+GitHub (2026) *GitHub Documentation*. Available at: https://docs.github.com/ (Accessed: 6 July 2026).
+
+Jest (2026) *Jest Documentation*. Available at: https://jestjs.io/docs/getting-started (Accessed: 15 June 2026).
+
+Node.js Foundation (2026) *Node.js Documentation*. Available at: https://nodejs.org/docs/latest/api/ (Accessed: 15 June 2026).
+
+Playwright (2026) *Playwright Documentation*. Available at: https://playwright.dev/docs/intro (Accessed: 6 July 2026).
+
+PostgreSQL Global Development Group (2026) *PostgreSQL Documentation*. Available at: https://www.postgresql.org/docs/ (Accessed: 15 June 2026).
+
+React Team (2026) *React Documentation*. Available at: https://react.dev/ (Accessed: 6 June 2026).
+
+React Router Team (2026) *React Router Documentation*. Available at: https://reactrouter.com/ (Accessed: 6 July 2026).
+
+Recharts (2026) *Recharts Documentation*. Available at: https://recharts.org/ (Accessed: 17 June 2026).
+
+Render (2026) *Render Documentation*. Available at: https://render.com/docs (Accessed: 1 July 2026).
+
+Sequelize (2026) *Sequelize ORM Documentation*. Available at: https://sequelize.org/ (Accessed: 19 June 2026).
+
+Stripe (2026) *Stripe Documentation*. Available at: https://docs.stripe.com/ (Accessed: 1 July 2026).
+
+Tailwind Labs (2026) *Tailwind CSS Documentation*. Available at: https://tailwindcss.com/docs (Accessed: 3 July 2026).
+
+Vercel (2026) *Vercel Documentation*. Available at: https://vercel.com/docs (Accessed: 27 June 2026).
+
+Vite Team (2026) *Vite Documentation*. Available at: https://vite.dev/guide/ (Accessed: 30 June 2026).
+
+Zod (2026) *Zod Documentation*. Available at: https://zod.dev/ (Accessed: 6 July 2026).
+
+JSON Web Token (JWT) (2026) *JWT Introduction*. Available at: https://jwt.io/introduction (Accessed: 6 July 2026).
+
+bcrypt (2026) *bcrypt Documentation*. Available at: https://github.com/kelektiv/node.bcrypt.js (Accessed: 6 July 2026).
 
 ---
 
